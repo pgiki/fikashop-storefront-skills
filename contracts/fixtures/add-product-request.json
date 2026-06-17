@@ -1,0 +1,11 @@
+{
+  "id": 42,
+  "quantity": 1,
+  "options": [
+    { "option": "special-instructions", "value": "No onions" }
+  ],
+  "modifier_groups": {
+    "3": [{ "id": 18081, "quantity": 1 }],
+    "4": [{ "id": 18144, "quantity": 1 }]
+  }
+}

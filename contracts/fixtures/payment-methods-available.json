@@ -1,0 +1,36 @@
+[
+  {
+    "code": "cash",
+    "name": "Cash on delivery",
+    "method_type": "cash",
+    "description": "Pay when your order arrives",
+    "image_url": null,
+    "input_fields": []
+  },
+  {
+    "code": "mpesa",
+    "name": "M-Pesa",
+    "method_type": "online-payments",
+    "description": "Pay with Vodacom M-Pesa",
+    "image_url": "https://api.fikachu.com/media/source_types/images/mpesa.png",
+    "input_fields": [
+      {
+        "code": "msisdn",
+        "label": "M-Pesa number",
+        "type": "string",
+        "is_required": true,
+        "help_text": "255XXXXXXXXX",
+        "default_value": null,
+        "schema": {}
+      }
+    ]
+  },
+  {
+    "code": "wallet",
+    "name": "FikaChu Wallet",
+    "method_type": "wallet",
+    "description": "Pay from your wallet balance",
+    "image_url": null,
+    "input_fields": []
+  }
+]

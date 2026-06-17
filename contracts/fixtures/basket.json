@@ -1,0 +1,35 @@
+{
+  "id": 17,
+  "owner": null,
+  "status": "Open",
+  "lines": [
+    {
+      "url": "https://api.fikachu.com/shop/api/baskets/17/lines/88/",
+      "product": {
+        "id": 42,
+        "title": "Classic Burger"
+      },
+      "quantity": 1,
+      "price_currency": "TZS",
+      "price_excl_tax": "13500.00",
+      "price_incl_tax": "13500.00",
+      "stockrecord": {
+        "id": 101,
+        "price": "12000.00"
+      }
+    }
+  ],
+  "url": "https://api.fikachu.com/shop/api/baskets/17/",
+  "total_excl_tax": "13500.00",
+  "total_incl_tax": "13500.00",
+  "total_incl_tax_excl_discounts": "13500.00",
+  "total_excl_tax_excl_discounts": "13500.00",
+  "currency": "TZS",
+  "partner": {
+    "id": 1,
+    "name": "Demo Kitchen",
+    "code": "demo-kitchen"
+  },
+  "voucher_discounts": [],
+  "offer_discounts": []
+}

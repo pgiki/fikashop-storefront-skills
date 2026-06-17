@@ -1,0 +1,25 @@
+{
+  "id": 902,
+  "number": "100000902",
+  "status": "Pending",
+  "currency": "TZS",
+  "total_incl_tax": "15500.00",
+  "total_excl_tax": "15500.00",
+  "shipping_incl_tax": "2000.00",
+  "shipping_method": "Standard delivery",
+  "shipping_code": "standard",
+  "email": "customer@example.com",
+  "payments": [
+    {
+      "id": 56,
+      "variant": "mpesa",
+      "variant_name": "M-Pesa",
+      "status": "waiting",
+      "total": "15500.00",
+      "captured_amount": "0.00",
+      "reference": "gw-token-def456",
+      "message": "",
+      "extra_data": {}
+    }
+  ]
+}

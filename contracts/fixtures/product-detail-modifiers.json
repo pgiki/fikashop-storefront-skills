@@ -1,0 +1,39 @@
+{
+  "id": 42,
+  "title": "Classic Burger",
+  "slug": "classic-burger",
+  "is_digital": false,
+  "options": [
+    {
+      "id": 1,
+      "code": "special-instructions",
+      "name": "Special instructions",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "stockrecords": [
+    {
+      "id": 101,
+      "price": "12000.00",
+      "price_currency": "TZS",
+      "modifier_groups": [
+        {
+          "id": 3,
+          "name": "Extras",
+          "min_permitted": 0,
+          "max_permitted": 3,
+          "modifier_options": [
+            {
+              "id": 18081,
+              "title": "Extra cheese",
+              "price": "1500.00",
+              "min_quantity": 0,
+              "max_quantity": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

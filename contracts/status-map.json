@@ -1,0 +1,16 @@
+{
+  "order": {
+    "actionable": ["Pending"],
+    "success": ["payment_authorized", "Authorized", "completed", "processing", "Shipped", "shipped"],
+    "terminal_failure": ["Canceled", "cancelled", "Payment Declined", "refunded"]
+  },
+  "payment": {
+    "actionable": ["waiting", "pending", "preauth", "error", "failed"],
+    "success": ["confirmed", "success", "settled", "paid"]
+  },
+  "capture_response": {
+    "redirect": ["redirect"],
+    "success": ["success"],
+    "error": ["error", "declined"]
+  }
+}

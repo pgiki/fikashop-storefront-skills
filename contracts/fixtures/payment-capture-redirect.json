@@ -1,0 +1,5 @@
+{
+  "status": "redirect",
+  "redirect_url": "https://gateway.example.com/pay/session/xyz",
+  "detail": "Complete payment in the browser"
+}

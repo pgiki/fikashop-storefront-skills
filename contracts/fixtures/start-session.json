@@ -1,0 +1,12 @@
+{
+  "user": {
+    "id": 42,
+    "username": "oidc-sub-abc123",
+    "email": "customer@example.com",
+    "first_name": "Asha",
+    "last_name": "Mwangi",
+    "phone": "+255712345678",
+    "is_phone_verified": true
+  },
+  "basket_id": 17
+}

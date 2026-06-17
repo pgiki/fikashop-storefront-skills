@@ -1,0 +1,18 @@
+{
+  "id": 903,
+  "number": "100000903",
+  "status": "Pending",
+  "currency": "TZS",
+  "total_incl_tax": "13500.00",
+  "payments": [
+    {
+      "id": 57,
+      "variant": "wallet",
+      "variant_name": "FikaChu Wallet",
+      "status": "waiting",
+      "total": "13500.00",
+      "reference": "gw-token-wallet789",
+      "extra_data": {}
+    }
+  ]
+}

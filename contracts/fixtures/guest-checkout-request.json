@@ -1,0 +1,23 @@
+{
+  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "guest_email": "guest@example.com",
+  "shipping_method_code": "pick-up",
+  "shipping_address": {
+    "first_name": "Guest",
+    "last_name": "User",
+    "line1": "Counter pickup",
+    "country": "TZ",
+    "phone_number": "+255712345678",
+    "location": {
+      "type": "Point",
+      "coordinates": [39.2712, -6.7773]
+    }
+  },
+  "payment": {
+    "cash": {
+      "enabled": true,
+      "variant": "cash",
+      "input_fields": {}
+    }
+  }
+}

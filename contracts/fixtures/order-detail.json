@@ -1,0 +1,42 @@
+{
+  "id": 902,
+  "number": "100000902",
+  "status": "Pending",
+  "total_incl_tax": "15500.00",
+  "currency": "TZS",
+  "lines": [
+    {
+      "id": 1201,
+      "quantity": 1,
+      "title": "Classic Burger",
+      "price_incl_tax": "13500.00",
+      "product": {
+        "id": 42,
+        "title": "Classic Burger",
+        "is_digital": false
+      }
+    }
+  ],
+  "payments": [
+    {
+      "id": 56,
+      "variant": "mpesa",
+      "variant_name": "M-Pesa",
+      "status": "waiting",
+      "total": "15500.00",
+      "reference": "gw-token-def456",
+      "payment_method": {
+        "code": "mpesa",
+        "name": "M-Pesa",
+        "input_fields": [
+          {
+            "code": "billing_phone",
+            "label": "M-Pesa number",
+            "type": "string",
+            "is_required": true
+          }
+        ]
+      }
+    }
+  ]
+}

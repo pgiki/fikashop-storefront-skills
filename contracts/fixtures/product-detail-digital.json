@@ -1,0 +1,17 @@
+{
+  "id": 141,
+  "title": "Digital course",
+  "slug": "digital-course",
+  "is_digital": true,
+  "description": "Self-paced video course with workbook",
+  "stockrecords": [
+    {
+      "id": 201,
+      "price": "50000.00",
+      "price_currency": "TZS",
+      "num_in_stock": null,
+      "partner": 1
+    }
+  ],
+  "options": []
+}

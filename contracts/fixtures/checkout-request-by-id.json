@@ -1,0 +1,15 @@
+{
+  "basket": 17,
+  "user_address": 5,
+  "shipping_method_code": "standard",
+  "payment": {
+    "online-payments": {
+      "enabled": true,
+      "variant": "mpesa",
+      "input_fields": {
+        "msisdn": "255712345678",
+        "billing_phone": "255712345678"
+      }
+    }
+  }
+}

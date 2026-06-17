@@ -1,0 +1,12 @@
+{
+  "country": "TZ",
+  "line1": "Plot 12, Oysterbay",
+  "line4": "Dar es Salaam",
+  "state": "Dar es Salaam",
+  "postcode": "14111",
+  "phone_number": "+255712345678",
+  "location": {
+    "type": "Point",
+    "coordinates": [39.2712, -6.7773]
+  }
+}

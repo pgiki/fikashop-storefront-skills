@@ -1,0 +1,10 @@
+{
+  "order_status": "Pending",
+  "payment_method_states": {
+    "online-payments": {
+      "status": "waiting",
+      "amount": "15500.00",
+      "required_action": "capture"
+    }
+  }
+}

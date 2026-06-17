@@ -1,0 +1,31 @@
+{
+  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "user_address": 5,
+  "shipping_method_code": "standard",
+  "shipping_address": {
+    "country": "TZ",
+    "first_name": "Asha",
+    "last_name": "Mwangi",
+    "line1": "Plot 12, Oysterbay",
+    "line2": "",
+    "line3": "",
+    "line4": "Dar es Salaam",
+    "postcode": "14111",
+    "phone_number": "+255712345678",
+    "location": {
+      "type": "Point",
+      "coordinates": [39.2712, -6.7773]
+    },
+    "notes": "Gate B"
+  },
+  "payment": {
+    "online-payments": {
+      "enabled": true,
+      "variant": "mpesa",
+      "input_fields": {
+        "msisdn": "255712345678",
+        "billing_phone": "255712345678"
+      }
+    }
+  }
+}

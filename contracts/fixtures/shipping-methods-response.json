@@ -1,0 +1,24 @@
+[
+  {
+    "code": "standard",
+    "name": "Standard delivery",
+    "description": "Delivered within 45 minutes",
+    "price": {
+      "currency": "TZS",
+      "excl_tax": "2000.00",
+      "incl_tax": "2000.00"
+    },
+    "is_discounted": false
+  },
+  {
+    "code": "pick-up",
+    "name": "Store pickup",
+    "description": "Collect at counter",
+    "price": {
+      "currency": "TZS",
+      "excl_tax": "0.00",
+      "incl_tax": "0.00"
+    },
+    "is_discounted": false
+  }
+]
