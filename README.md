@@ -24,7 +24,7 @@ Cursor Agent Skill for integrating **custom storefronts** (web or mobile) with *
 ## Install as a Cursor skill
 
 ```bash
-git clone https://github.com/fikachu/fikashop-storefront-skills.git
+git clone https://github.com/pgiki/fikashop-storefront-skills.git
 ln -sf "$(pwd)/fikashop-storefront-skills" ~/.cursor/skills/fikashop-storefront-skills
 ```
 

@@ -5,7 +5,7 @@ This repository is a **Cursor Agent Skill** and integrator documentation pack. I
 ## Clone and install
 
 ```bash
-git clone https://github.com/fikachu/fikashop-storefront-skills.git
+git clone https://github.com/pgiki/fikashop-storefront-skills.git
 cd fikashop-storefront-skills
 ln -sf "$(pwd)" ~/.cursor/skills/fikashop-storefront-skills
 ```
