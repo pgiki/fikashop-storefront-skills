@@ -66,7 +66,6 @@ Or run the [curl examples](examples/curl/README.md) — start with [smoke-test.s
 | Tool | URL |
 | ---- | --- |
 | OpenAPI (schemas) | `{API_BASE}/docs/` |
-| Postman collection | [fikashop-api Postman](https://github.com/fikachu/fikashop/blob/main/fikashop-api/postman/Fikashop.postman_collection.json) |
 
 ## Next steps
 
@@ -75,7 +74,7 @@ Or run the [curl examples](examples/curl/README.md) — start with [smoke-test.s
 | Full journey | [storefront-integration.md](storefront-integration.md) |
 | Agent fast path | [contracts/INTEGRATION.md](../contracts/INTEGRATION.md) |
 | QA checklist | [contracts/CHECKLIST.md](../contracts/CHECKLIST.md) |
-| Reference mobile app | [reference-client-map.md](reference-client-map.md) |
+| Reference client map | [reference-client-map.md](reference-client-map.md) |
 
 ## Framework notes
 
@@ -83,4 +82,4 @@ Or run the [curl examples](examples/curl/README.md) — start with [smoke-test.s
 | ----- | ------------------ | ----- |
 | SPA (Vite/CRA) | `localStorage` | Single origin; handle 401 refresh |
 | Next.js | Cookie or `localStorage` on client components | Do not generate new UUID per SSR request |
-| Expo / RN | `AsyncStorage` | Mirror [fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile) `api.ts` headers |
+| Expo / RN | `AsyncStorage` | See [client-setup.ts](examples/client-setup.ts) for headers and session persistence |

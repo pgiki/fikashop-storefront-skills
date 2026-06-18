@@ -47,7 +47,7 @@ Accept: application/json
 Authorization: Bearer {ACCESS_TOKEN}   # when authenticated
 ```
 
-Optional `?partner={PARTNER_ID}` on basket, add-product, checkout, payment-methods (mirrors fikashop-mobile).
+Optional `?partner={PARTNER_ID}` on basket, add-product, checkout, payment-methods (mirrors reference client behavior).
 
 ### Bootstrap sequence
 

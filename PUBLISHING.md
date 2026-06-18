@@ -16,24 +16,27 @@ In Cursor, reference `@fikashop-storefront-skills` or `@fikashop-storefront-skil
 
 | Artifact | Location |
 | -------- | -------- |
-| Source integration guide | `fikashop-api/docs/storefront-integration.md` in [fikashop monorepo](https://github.com/fikachu/fikashop) |
+| Source integration guide | `fikashop-api/docs/storefront-integration.md` (private monorepo) |
 | Vendored copy (this repo) | [docs/storefront-integration.md](docs/storefront-integration.md) |
+| Screen-to-API map | [docs/reference-client-map.md](docs/reference-client-map.md) |
 | Sync script | [scripts/sync-integration-doc.sh](scripts/sync-integration-doc.sh) |
 
 When the API guide changes, run the sync script and update distilled contracts in the same PR.
 
-## Optional peer repos
+## Self-contained documentation policy
 
-| Repo | Purpose |
-| ---- | ------- |
-| [fikashop-payments-skills](https://github.com/fikachu/fikashop-payments-skills) | Subscriptions, wallet top-up, webhooks |
-| [fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile) | Reference React Native client |
+This skill pack must not link to private monorepo repos (`fikashop-mobile`, `fikashop-api`, `fikashop-payments-skills`). Integrators get everything they need from:
 
-Neither is required to complete a storefront integration using this skill.
+- [docs/storefront-integration.md](docs/storefront-integration.md)
+- [docs/reference-client-map.md](docs/reference-client-map.md)
+- [contracts/](contracts/) and [docs/examples/](docs/examples/)
+- Live API OpenAPI at `{API_BASE}/docs/`
+
+Run `npm run check:links` before publishing.
 
 ## GitHub release checklist
 
 - [ ] `docs/storefront-integration.md` synced from fikashop-api
-- [ ] `npm test` passes (fixtures + example typecheck)
+- [ ] `npm test` and `npm run check:links` pass
 - [ ] [SKILL.md](SKILL.md) and [contracts/CHECKLIST.md](contracts/CHECKLIST.md) reflect current API
-- [ ] No broken relative links to monorepo-only paths
+- [ ] No links to private monorepo GitHub URLs

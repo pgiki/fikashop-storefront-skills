@@ -28,34 +28,46 @@ path = Path(sys.argv[1])
 commit = sys.argv[2]
 text = path.read_text()
 
-GITHUB_MOBILE = "https://github.com/fikachu/fikashop/tree/main/fikashop-mobile"
-GITHUB_API = "https://github.com/fikachu/fikashop/tree/main/fikashop-api"
-GITHUB_POSTMAN = "https://github.com/fikachu/fikashop/blob/main/fikashop-api/postman/Fikashop.postman_collection.json"
-GITHUB_INVOICE = "https://github.com/fikachu/fikashop/blob/main/fikashop-api/docs/README-invoice-api-integration.md"
-GITHUB_PARTNER_SCOPE = "https://github.com/fikachu/fikashop/blob/main/fikashop-api/shop/utils/partner_scope.py"
-
-text = re.sub(r'\]\(\.\./\.\./fikashop-mobile/([^)]+)\)', lambda m: f']({GITHUB_MOBILE}/{m.group(1)})', text)
-text = re.sub(r'\[fikashop-mobile\]\(\.\./\.\./fikashop-mobile\)', f'[fikashop-mobile]({GITHUB_MOBILE})', text)
-text = re.sub(r'\]\(\.\./\.\./fikashop-mobile\)', f']({GITHUB_MOBILE})', text)
-text = re.sub(
-    r'\[postman/Fikashop\.postman_collection\.json\]\(\.\./postman/Fikashop\.postman_collection\.json\)',
-    f'[Postman collection]({GITHUB_POSTMAN})', text)
-text = re.sub(
-    r'\[README-invoice-api-integration\.md\]\(\./README-invoice-api-integration\.md\)',
-    f'[invoice API integration guide]({GITHUB_INVOICE})', text)
-text = re.sub(
-    r'\[partner_scope\.py\]\(\.\./shop/utils/partner_scope\.py\)',
-    f'[partner_scope.py]({GITHUB_PARTNER_SCOPE})', text)
+# Monorepo reference map -> skills-local path
 text = text.replace(
-    "See other integration guides under `fikashop-api/docs/`",
-    f"See other integration guides in the [fikashop-api docs]({GITHUB_API}/docs/)")
+    "[`fikashop-storefront-skills/docs/reference-client-map.md`](../../fikashop-storefront-skills/docs/reference-client-map.md)",
+    "[reference-client-map.md](reference-client-map.md)",
+)
+text = text.replace(
+    "[`reference-client-map.md`](../../fikashop-storefront-skills/docs/reference-client-map.md)",
+    "[reference-client-map.md](reference-client-map.md)",
+)
 
-header = f"<!-- synced from fikashop-api/docs/storefront-integration.md @ {commit} — run scripts/sync-integration-doc.sh to refresh -->\n\n"
+# Strip any leftover monorepo-relative mobile links
+text = re.sub(r"\[`([^`]+)`\]\(\.\./\.\./fikashop-mobile/[^)]+\)", r"`\1`", text)
+text = re.sub(r"\[([^\]]+)\]\(\.\./\.\./fikashop-mobile/[^)]+\)", r"\1", text)
+text = re.sub(r"\[`([^`]+)`\]\(\.\./\.\./fikashop-mobile\)", r"\1", text)
+
+# Block private monorepo GitHub URLs if they appear in source
+text = re.sub(r"https://github\.com/fikachu/fikashop[^\s)>\"]*", "", text)
+text = re.sub(r"https://github\.com/pgiki/fikashop[^\s)>\"]*", "", text)
+
+header = (
+    f"<!-- synced from fikashop-api/docs/storefront-integration.md @ {commit} "
+    f"— run scripts/sync-integration-doc.sh to refresh -->\n\n"
+)
 if text.startswith("<!-- synced"):
-    text = re.sub(r'^<!-- synced.*?-->\n\n', header, text, count=1)
+    text = re.sub(r"^<!-- synced.*?-->\n\n", header, text, count=1)
 else:
     text = header + text
 
 path.write_text(text)
+
+forbidden = [
+    "github.com/fikachu/fikashop",
+    "github.com/pgiki/fikashop",
+    "../../fikashop-mobile",
+    "fikashop-mobile/tree",
+]
+for needle in forbidden:
+    if needle in path.read_text():
+        print(f"Sync produced forbidden reference: {needle}", file=sys.stderr)
+        sys.exit(1)
+
 print(f"Synced {path} @ {commit}")
 PY

@@ -20,6 +20,11 @@ When fikashop-api storefront behavior changes:
    - [contracts/status-map.json](contracts/status-map.json)
 4. Add or update fixtures in [contracts/fixtures/](contracts/fixtures/) — keep `npm test` green
 5. Update [SKILL.md](SKILL.md) and [CHANGELOG.md](CHANGELOG.md)
+6. Run `npm run check:links` — no links to private monorepo repos (`github.com/fikachu/fikashop`, `github.com/pgiki/fikashop`). The only allowed GitHub URL is this repo's clone URL (`fikashop-storefront-skills`).
+
+## Link policy
+
+Do **not** add markdown links to `fikashop-mobile`, `fikashop-api`, or `fikashop-payments-skills` on GitHub. Use [docs/reference-client-map.md](docs/reference-client-map.md) and inline behaviors instead.
 
 ## Cursor skill symlink
 
@@ -33,7 +38,7 @@ ln -sf "$(pwd)/fikashop-storefront-skills" .cursor/skills/fikashop-storefront-sk
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) validates JSON fixtures and runs TypeScript example typecheck on push/PR to `main`.
+GitHub Actions (`.github/workflows/ci.yml`) validates JSON fixtures, runs TypeScript example typecheck, and checks for forbidden external repo links on push/PR to `main`.
 
 ## Publishing
 

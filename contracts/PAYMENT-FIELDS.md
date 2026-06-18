@@ -111,4 +111,4 @@ Fixture: [payment-capture-request.json](fixtures/payment-capture-request.json)
 
 `cash`, `mpesa`, `wallet`, `selcom`, `safaricom`, `tigo_pesa`, `airtel_money`, `snippe_mobile`, `snippe_card`, `clickpesa_mobile`, `clickpesa_card`
 
-For wallet top-up and subscription billing (separate from shop checkout), see [fikashop-payments-skills](https://github.com/fikachu/fikashop-payments-skills) (optional peer repo).
+For wallet top-up and subscription billing (separate from shop checkout), see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md).

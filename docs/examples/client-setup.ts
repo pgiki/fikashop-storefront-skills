@@ -1,6 +1,6 @@
 /**
  * Storefront HTTP client bootstrap — Session-Id, X-Partner-Id, Bearer, 401 refresh.
- * Illustrative pattern aligned with fikashop-mobile (config.ts, api.ts).
+ * Canonical HTTP client bootstrap — Session-Id, X-Partner-Id, Bearer, 401 refresh.
  *
  * Storage: use localStorage (web) or AsyncStorage (React Native / Expo).
  * Pass a custom get/set pair instead of localStorage when not in the browser.

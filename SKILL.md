@@ -16,7 +16,7 @@ Build a **single-partner** storefront against **fikashop-api**: browse menu → 
 
 **Fast path:** [contracts/INTEGRATION.md](contracts/INTEGRATION.md) — bootstrap through orders.
 
-**Reference client:** [docs/reference-client-map.md](docs/reference-client-map.md) (maps to open-source [fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)).
+**Reference client:** [docs/reference-client-map.md](docs/reference-client-map.md) — screen-to-API map and client module behaviors (self-contained).
 
 ## Three API roots
 
@@ -131,4 +131,4 @@ Status sets: [contracts/status-map.json](contracts/status-map.json).
 
 ## Out of scope
 
-[OUT-OF-SCOPE.md](contracts/OUT-OF-SCOPE.md). Optional peer: [fikashop-payments-skills](https://github.com/fikachu/fikashop-payments-skills) for subscriptions and wallet top-up.
+[OUT-OF-SCOPE.md](contracts/OUT-OF-SCOPE.md). Subscriptions and wallet top-up are out of scope — coordinate with your FikaChu operator.

@@ -60,12 +60,6 @@ ln -sf "$(pwd)/fikashop-storefront-skills" .cursor/skills/fikashop-storefront-sk
 
 See [contracts/CHECKLIST.md](contracts/CHECKLIST.md) for the full QA list.
 
-## Related repos (optional)
-
-| Repo | When |
-|------|------|
-| [fikashop-payments-skills](https://github.com/fikachu/fikashop-payments-skills) | Subscriptions, wallet top-up, server webhooks |
-| [fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile) | Reference React Native client |
-| [fikashop-api](https://github.com/fikachu/fikashop/tree/main/fikashop-api) | OpenAPI, Postman collection |
+This skill pack is **self-contained**: guides, contracts, fixtures, and examples live in this repo. Use `{API_BASE}/docs/` for live OpenAPI schemas.
 
 MIT — [LICENSE](LICENSE)

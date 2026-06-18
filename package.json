@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck:examples": "tsc -p tsconfig.examples.json --noEmit"
+    "typecheck:examples": "tsc -p tsconfig.examples.json --noEmit",
+    "check:links": "vitest run tests/links.test.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -40,4 +40,3 @@ From [docs/storefront-integration.md Appendix E](../docs/storefront-integration.
 | Demo partner | `X-Partner-Id: 1` (Demo Kitchen) |
 | Local API | `http://127.0.0.1:8076` |
 | OpenAPI | `{API_BASE}/docs/` |
-| Postman | [Fikashop.postman_collection.json](https://github.com/fikachu/fikashop/blob/main/fikashop-api/postman/Fikashop.postman_collection.json) |

@@ -23,5 +23,8 @@ jobs:
       - name: Validate fixtures
         run: npm test
 
+      - name: Check documentation links
+        run: npm run check:links
+
       - name: Typecheck examples
         run: npm run typecheck:examples

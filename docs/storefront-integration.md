@@ -1,4 +1,4 @@
-<!-- synced from fikashop-api/docs/storefront-integration.md @ 493cf847c119dbba76c4955c6cbf5c68b92e3ba4 — run scripts/sync-integration-doc.sh to refresh -->
+<!-- synced from fikashop-api/docs/storefront-integration.md @ 89b359449ccf4c1af8a74a9a4d93d324b618eae4 — run scripts/sync-integration-doc.sh to refresh -->
 
 # Fikashop API — Third-Party Storefront Integration Guide
 
@@ -30,27 +30,27 @@ Read sections **in order** the first time. Use [Appendix A](#appendix-a-catalog-
 | Resource             | Location                                                                                                              |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | OpenAPI (schemas)    | `{API_BASE}/docs/`                                                                                                    |
-| Postman collection   | `[Postman collection](https://github.com/fikachu/fikashop/blob/main/fikashop-api/postman/Fikashop.postman_collection.json)`                             |
-| Standalone invoicing | `[invoice API integration guide](https://github.com/fikachu/fikashop/blob/main/fikashop-api/docs/README-invoice-api-integration.md)` (only if you sell invoice-backed products) |
+| Screen-to-API map    | [reference-client-map.md](reference-client-map.md) |
+| Standalone invoicing | Out of scope for storefront checkout — coordinate with your FikaChu operator if you sell invoice-backed products      |
 
 
-**Mobile vs this guide:** The reference app `[fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)` may send a product `url` on add-to-cart; the API accepts `id` or `url` (same product). Options may use option `url` in the client; the API accepts option **code**, numeric **id**, or URL segment. See [Appendix D](#appendix-d-reference-implementation-map) for a file-by-file map.
+**Client vs this guide:** A reference storefront client may send a product `url` on add-to-cart; the API accepts `id` or `url` (same product). Options may use option `url` in the client; the API accepts option **code**, numeric **id**, or URL segment. See [Appendix D](#appendix-d-reference-implementation-map) for screen-to-endpoint mapping.
 
 ### Customer lifecycle (single-partner storefront)
 
-Build your UI around this flow. The **Storefront screen** column mirrors routes in the reference mobile app; your web app can use equivalent pages.
+Build your UI around this flow. The **Storefront screen** column shows typical routes; your web app can use equivalent pages. See [Appendix D](#appendix-d-reference-implementation-map) for client modules and behaviors.
 
 
-| Phase      | Storefront screen (mobile)  | API calls                                                                          | Mobile reference                                                                                                                                         |
-| ---------- | --------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bootstrap  | Splash                      | Persist `Session-Id`; optional `GET /auth/api/user/` after login                   | [`auth.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/auth.tsx), [`index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx) |
-| Store home | Partner menu                | `GET /partners/{PARTNER_ID}/categories/`                                           | [`[partner_id]/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(partners)/[partner_id]/index.tsx) |
-| Product    | Product detail              | `GET /products/{id}/`                                                              | [`ProductDetailFullModal.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/components/product/ProductDetailFullModal.tsx) |
-| Cart       | `/cart`                     | `GET /basket/`, `PATCH`/`DELETE` lines                                             | [`cart.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/cart.tsx) |
-| Address    | `/landing?next=checkout`    | Client geocode/cache; then `POST /basket/shipping-methods/`                        | [`landing.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/landing.tsx), [`CartCheckoutBottom.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/components/checkout/CartCheckoutBottom.tsx) |
-| Checkout   | `/checkout`                 | `GET …/payment-methods/available/`, `POST …/shipping-methods/`, `POST …/checkout/` | [`checkout/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx) |
-| Pay        | `/checkout/payment-details` | `GET /orders/{id}/`, `POST /payments/process/{reference}/`                         | [`payment-details.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/payment-details.tsx) |
-| Done       | `/order-placed/{id}`        | `GET /orders/{id}/`, optional `GET …/receipt/`                                     | [`order-placed/[order_id].tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/order-placed/[order_id].tsx) |
+| Phase      | Storefront screen           | API calls                                                                          | Client module                                                                 |
+| ---------- | --------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Bootstrap  | Splash / app init           | Persist `Session-Id`; optional `GET /auth/api/user/` after login                   | `HttpClient`, `AuthStore` — [§1.5](#15-client-bootstrap-and-environment)      |
+| Store home | Partner menu                | `GET /partners/{PARTNER_ID}/categories/`                                           | `PartnerHomeScreen`, `CatalogStore` — [§3](#3-partner-store-homepage)        |
+| Product    | Product detail              | `GET /products/{id}/`                                                              | `ProductDetailScreen` — [§4](#4-browsing-the-menu)                            |
+| Cart       | `/cart`                     | `GET /basket/`, `PATCH`/`DELETE` lines                                             | `CartScreen`, `BasketStore` — [§6](#6-cart-management)                        |
+| Address    | Address picker              | Client geocode/cache; then `POST /basket/shipping-methods/`                        | `AddressScreen`, `CheckoutStore` — [§7](#7-shipping-address-and-methods)        |
+| Checkout   | `/checkout`                 | `GET …/payment-methods/available/`, `POST …/shipping-methods/`, `POST …/checkout/` | `CheckoutScreen` — [§8](#8-payment-methods), [§9](#9-checkout)                |
+| Pay        | `/checkout/payment-details` | `GET /orders/{id}/`, `POST /payments/process/{reference}/`                         | `PaymentScreen` — [§10](#10-complete-payment)                                 |
+| Done       | `/order-placed/{id}`        | `GET /orders/{id}/`, optional `GET …/receipt/`                                     | `OrderConfirmationScreen`, `OrdersStore` — [§11](#11-order-management)        |
 
 
 ```mermaid
@@ -98,7 +98,7 @@ Enforce these before allowing checkout (reference app behavior):
 | Single-partner cart | `basket.partner.id`                                   | Must match `{PARTNER_ID}`; clear cart before switching stores                                    |
 
 
-**Marketplace variant (optional):** `[fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)` also lists stores via `GET /partners/` and lets users switch partners. For a **single branded storefront**, hard-code `{PARTNER_ID}` and skip partner discovery.
+**Marketplace variant (optional):** A multi-store reference client lists stores via `GET /partners/` and lets users switch partners. For a **single branded storefront**, hard-code `{PARTNER_ID}` and skip partner discovery.
 
 ---
 
@@ -228,7 +228,7 @@ X-Partner-Id: 1
 
 (Replace with your real `{PARTNER_ID}`.)
 
-**Configure once in your HTTP client** (same pattern as `[fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)` `setSelectedPartner`):
+**Configure once in your HTTP client** (set partner scope on the client):
 
 ```javascript
 // Example: global fetch wrapper
@@ -253,7 +253,7 @@ const checkout = await shopApi("/checkout/", {
 ```
 
 ```javascript
-// Example: apisauce (same library as fikashop-mobile)
+// Example: apisauce or fetch wrapper
 import { create } from "apisauce";
 
 const shopApi = create({
@@ -297,7 +297,7 @@ Partner profile URLs use `{PARTNER_ID}` in the **path** (not as a query paramete
 
 ## 1.5 Client bootstrap and environment
 
-Mirror the reference app's HTTP client setup (`[config.ts](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/config.ts)`, `[api.ts](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/api.ts)`).
+Mirror a typical HTTP client setup: environment config plus a shop API module with interceptors (see [Appendix D](#appendix-d-reference-implementation-map)).
 
 ### Environment variables
 
@@ -341,13 +341,13 @@ function loadOrCreateSessionId(apiBase, authType = "ANON") {
 
 ### Partner scoping: header and optional query
 
-Send `X-Partner-Id: {PARTNER_ID}` on **every** `/shop/api/` request. The reference app also appends `?partner={PARTNER_ID}` on basket, add-product, checkout, and payment-methods calls. Server resolution order (`[partner_scope.py](https://github.com/fikachu/fikashop/blob/main/fikashop-api/shop/utils/partner_scope.py)`): `?partner=` → `X-Partner-Id` → session `partner_id`.
+Send `X-Partner-Id: {PARTNER_ID}` on **every** `/shop/api/` request. The reference app also appends `?partner={PARTNER_ID}` on basket, add-product, checkout, and payment-methods calls. Server resolution order: `?partner=` → `X-Partner-Id` → session `partner_id`.
 
 For a fixed single-store site, the header alone is sufficient; include `?partner=` when mirroring mobile or debugging partner resolution.
 
 ### Token refresh on 401
 
-Register an HTTP interceptor (mobile: `configureAuthRefresh` in `[api.ts](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/api.ts)`):
+Register an HTTP interceptor (401 → refresh OIDC token, retry once):
 
 1. On `401`, exchange `refresh_token` at `{OIDC_ISS}/token/` (`grant_type=refresh_token`).
 2. Retry the failed request with the new `access_token`.
@@ -365,7 +365,7 @@ If `start-session` or basket calls return a **realm** mismatch error, clear sess
 // 5. Load cached delivery address from local storage (optional)
 ```
 
-Reference: [`startSession`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx) in the mobile root store.
+**Client behavior:** call `GET /shop/api/start-session/` after login with the same session UUID; persist returned `basket_id` if present.
 
 ## 2. Authentication
 
@@ -432,7 +432,7 @@ Use this table when wiring headers. “Bearer required” means a valid `Authori
 ### 2.4 Session lifecycle
 
 1. **On first visit** — generate UUID v4; set `Session-Id: SID:ANON:{api_hostname}:{uuid}` on all shop calls; persist locally.
-2. **After OIDC login** — keep the **same UUID**. The reference app calls `GET /shop/api/start-session/` with Bearer while the header may still show `ANON`, then flips to `SID:AUTH:…` in `initLoginData` ([`auth.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/auth.tsx)). Either order works if the UUID is unchanged.
+2. **After OIDC login** — keep the **same UUID**. The reference app calls `GET /shop/api/start-session/` with Bearer while the header may still show `ANON`, then flips to `SID:AUTH:…` when merging the authenticated session. Either order works if the UUID is unchanged.
 3. **Call** `GET /shop/api/start-session/` with Bearer + the same session header so the anonymous basket merges into the user basket.
 4. **Do not** rotate the UUID on login (you would lose the guest basket). Rotate only when the user clears site data or you start a new device session.
 
@@ -622,7 +622,7 @@ The API may allow guest checkout when `OSCAR_ALLOW_ANON_CHECKOUT` is enabled ([�
 5. Navigate back to `/checkout?is_preview=true&…` with fields prefilled.
 6. On authenticated submit, call `POST /shop/api/checkout/`.
 
-Reference: [`onSubmitLogin`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx) and [`onLogin`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/auth.tsx).
+**Client behavior:** redirect to OIDC before checkout submit when the user is not logged in; on return, exchange code and call `start-session`.
 
 **Recommendation:** Require login at checkout even if your deployment allows guests — it simplifies order tracking and payment retries.
 
@@ -632,7 +632,7 @@ Reference: [`onSubmitLogin`](https://github.com/fikachu/fikashop/tree/main/fikas
 
 Use the `{PARTNER_ID}` supplied when your store was set up on FikaChu. There is no separate “partner integration” or onboarding API for third-party storefronts.
 
-Reference: [`[partner_id]/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(partners)/[partner_id]/index.tsx).
+**Client behavior:** load categories on partner home mount; gate checkout on `partner.is_open` and `min_order_amount`.
 
 ### 3.1 Storefront rules (partner fields)
 
@@ -982,7 +982,7 @@ X-Partner-Id: 1
 Accept: application/json
 ```
 
-The reference app sends `is_public=true` and `partner={PARTNER_ID}` on menu product lists ([`fetchProducts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx)). `X-Partner-Id` alone is usually sufficient for a single-store site; include `partner` when mirroring mobile.
+The reference app sends `is_public=true` and `partner={PARTNER_ID}` on menu product lists (optional `is_public=true` query). `X-Partner-Id` alone is usually sufficient for a single-store site; include `partner` when mirroring mobile.
 
 **Response**
 
@@ -1171,7 +1171,7 @@ Modifier UI fields (on `stockrecords[].modifier_groups`):
 
 ## 6. Cart management
 
-Reference: `[index.tsx](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx)` (`addToBasket`, `fetchBasket`, `updateBasketLine`, `removeFromBasket`).
+**Client behavior:** `addToBasket`, `fetchBasket`, `updateBasketLine`, `removeFromBasket` on `BasketStore`.
 
 ### 6.1 Get current basket
 
@@ -1215,7 +1215,7 @@ Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
-Reference: `[fetchBasket](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx)`. The mobile client caches basket GETs for ~20 seconds unless `{ force: true }` after a mutation.
+**Client behavior:** cache basket GETs for ~20 seconds unless `{ force: true }` after a mutation.
 
 ### 6.2 Add product
 
@@ -1375,7 +1375,7 @@ Content-Type: application/json
 }
 ```
 
-Reference: `[addToBasket](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx)`.
+**Client behavior:** POST `/basket/add-product/` with product id or url and selected options.
 
 ### 6.7 Single-partner cart constraint
 
@@ -1562,7 +1562,7 @@ Include a GeoJSON `Point` for delivery quotes and driver routing. Coordinates ar
 }
 ```
 
-Reference: `[formatShippingAddress](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx)`.
+**Client behavior:** format checkout `shipping_address` with ISO-2 country and `[longitude, latitude]` coordinates.
 
 ### 7.6 `user_address` at checkout
 
@@ -1591,7 +1591,7 @@ When the customer selects a saved address, pass its id so the API links the orde
 }
 ```
 
-The reference mobile app always sends `shipping_address` from the checkout form and adds `user_address` when the user picks from `/addresses` ([`checkout/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx)).
+Always send `shipping_address` from the checkout form and add `user_address` when the user picks a saved address.
 
 ### 7.7 Shipping method defaults and delivery notes
 
@@ -1691,7 +1691,7 @@ Build checkout and payment forms dynamically from each method's `input_fields[]`
 | `msisdn`                                   | Mobile money number (method-specific)        |
 
 
-Reference: `[paymentInputValidation.ts](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/paymentInputValidation.ts)`, `[PaymentInputField.tsx](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/components/checkout/PaymentInputField.tsx)`.
+**Client behavior:** validate `input_fields` from `GET …/payment-methods/available/` before checkout and capture.
 
 At checkout submit, copy `phone_number` into `billing_phone` when the payment method expects it (mobile merges shipping phone into payment inputs).
 
@@ -1730,7 +1730,7 @@ When the checkout page gains focus and a delivery address with coordinates exist
 3. User selects `shipping_method_code` and `payment_method` → refresh basket with `payment_method_code` and `shipping_method_code` query params ([§6.1](#61-get-current-basket))
 4. On submit: `POST /shop/api/checkout/?partner={PARTNER_ID}`
 
-Reference: [`checkout/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx) `useEffect` on focus.
+**Client behavior:** on checkout screen focus, refresh payment methods and shipping methods for the current basket.
 
 ### Complete checkout request (reference payload)
 
@@ -1791,7 +1791,7 @@ On `406` or failed checkout, surface errors in this order (reference app):
 3. Other field keys — flatten object values to strings
 4. HTTP client `problem` / status text
 
-Reference: [`onSubmitCheckout`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx).
+**Client behavior:** disable submit during `POST /checkout/`; route to payment when `order.payments.length > 0`.
 
 ### Checkout idempotency and double-submit
 
@@ -2094,7 +2094,7 @@ After `POST {API_BASE}/shop/api/checkout/`, some orders include `payments[]` row
 
 **Capture URL:** `POST {API_BASE}/payments/process/{reference}/` where `reference` = `order.payments[].reference`.
 
-`[fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)` completes this in two steps after checkout:
+Complete payment in two steps after checkout:
 
 ```mermaid
 sequenceDiagram
@@ -2348,7 +2348,7 @@ Requires order owner or staff permission. Returns `404` for unrelated users.
 
 ### 10.7 Deferred payment (staff-only — not for storefront clients)
 
-`POST /shop/api/checkout/complete-deferred-payment/` settles deferred cash / pay-later balances after checkout. It is **not** used by [`fikashop-mobile`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile) and is **not callable from a standard storefront integration** today because:
+`POST /shop/api/checkout/complete-deferred-payment/` settles deferred cash / pay-later balances after checkout. It is **not** used by standard storefront clients and is **not callable from a standard storefront integration** today because:
 
 - The `order` field must be a **server-signed order token**, not order `id`, `number`, or URL.
 - Checkout and order JSON responses **do not include** this token (`OrderTokenField` in the API codebase).
@@ -2585,13 +2585,13 @@ On your confirmation route (mobile: `/order-placed/{order_id}`):
 2. Display `number`, `status`, lines, totals, and `shipping_address`.
 3. Offer receipt download: `GET /shop/api/orders/{number}/receipt/?return_format=pdf` (redirects to PDF).
 
-Reference: [`order-placed/[order_id].tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/order-placed/[order_id].tsx).
+**Client behavior:** show order confirmation; fetch receipt when available.
 
 ### 11.6 Resume incomplete payment
 
 From order list or detail, if `payments[].status` is still actionable ([§10.1](#101-when-to-show-the-payment-screen)), navigate to the payment screen with `order_id` and submit `POST /payments/process/{payments[].reference}/` again.
 
-Reference: [`payment-details.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/payment-details.tsx).
+**Client behavior:** load order, capture payment, poll until terminal status.
 
 ---
 
@@ -2716,7 +2716,7 @@ Not an API error — detect client-side when `basket.partner.id !== {PARTNER_ID}
 10. Poll order until payment succeeds; confirmation + `GET …/receipt/?return_format=pdf` ([§11](#11-order-management)).
 11. Digital products: [Appendix C](#appendix-c-digital-assets--frontend-integration).
 
-Use [Appendix D](#appendix-d-reference-implementation-map) to map each step to `fikashop-mobile` source files. Review [Appendix E](#appendix-e-production-considerations) before go-live.
+Use [Appendix D](#appendix-d-reference-implementation-map) to map each step to client modules and behaviors. Review [Appendix E](#appendix-e-production-considerations) before go-live.
 
 ---
 
@@ -2753,13 +2753,13 @@ This guide covers **customer storefront checkout** for a single provisioned part
 | Topic                                      | Notes                                                                                                                                                               |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Partner onboarding / admin APIs            | FikaChu provisions `{PARTNER_ID}`; use `/shop/api/admin/` only in staff apps                                                                                        |
-| Marketplace partner discovery              | Optional in `[fikashop-mobile](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile)` (`GET /partners/`); not required for a branded single-store site                                             |
-| Subscription wallet top-up                 | `POST /subscriptions/api/subscriptions/wallet-deposit/` — separate from shop checkout (`[subscriptions.ts](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/subscriptions.ts)`) |
+| Marketplace partner discovery              | Optional via `GET /partners/`; not required for a branded single-store site                                             |
+| Subscription wallet top-up                 | `POST /subscriptions/api/subscriptions/wallet-deposit/` — separate from shop checkout (separate from shop checkout) |
 | Voucher / promo UI                         | API supports `POST /shop/api/basket/add-voucher/`; reference app does not implement apply-code flow                                                                 |
 | Deferred cash (`complete-deferred-payment`) | Requires server-signed `order` token not exposed on storefront responses — staff/admin only ([§10.7](#107-deferred-payment-staff-only))                              |
-| Appointments, domains, standalone invoices | See other integration guides in the [fikashop-api docs](https://github.com/fikachu/fikashop/tree/main/fikashop-api/docs/)                                                                                                             |
+| Appointments, domains, standalone invoices | Coordinate with your FikaChu operator for appointments, domains, and standalone invoice APIs                                                                                                             |
 | Payment provider webhooks                  | Server-side only: `POST /payments/webhook/{variant}/` — your storefront polls order status instead                                                                  |
-| Partner Pay branded flow                   | Alternate mobile path (`[PartnerPayScreen.tsx](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/components/partners/me/PartnerPayScreen.tsx)`); same basket/checkout APIs                  |
+| Partner Pay branded flow                   | Alternate branded UX; same basket/checkout APIs                  |
 
 
 ---
@@ -3048,7 +3048,7 @@ Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
 ```
 
-Response shape matches order assets (including `download_url`, `download_expires_at`, and optional quota fields such as `downloads_remaining`). Subscription provisioning is tied to billing signals outside this guide; storefronts selling subscription digitals should combine [invoice API integration guide](https://github.com/fikachu/fikashop/blob/main/fikashop-api/docs/README-invoice-api-integration.md) with library polling.
+Response shape matches order assets (including `download_url`, `download_expires_at`, and optional quota fields such as `downloads_remaining`). Subscription provisioning is tied to billing signals outside this guide; storefronts selling subscription digitals should coordinate with your FikaChu operator for invoice-backed subscription digitals and library polling.
 
 One-time digitals (`access_mode: one_time` or digital class without `access_mode`) use `GET …/orders/{id}/assets/` only.
 
@@ -3107,23 +3107,9 @@ Partner staff using an admin app should use the **same** `GET /shop/api/orders/{
 
 ## Appendix D: Reference implementation map
 
-Map from this guide to the [`fikashop-mobile`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile) reference client.
+Screen-to-endpoint mapping and client module responsibilities: [reference-client-map.md](reference-client-map.md)
 
-
-| Guide section | Mobile files | Key endpoints |
-| ------------- | ------------ | ------------- |
-| [§1.5 Bootstrap](#15-client-bootstrap-and-environment) | [`config.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/config.ts), [`api.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/api.ts), [`auth.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/auth.tsx) | Session-Id, Bearer, `GET /auth/api/user/` |
-| [§2 Auth](#2-authentication) | [`auth.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/auth.tsx), [`authorize.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(auth)/authorize.tsx) | OIDC token, `GET /shop/api/start-session/` |
-| [§2.9 Login gate](#29-login-gate-at-checkout-reference-app) | [`checkout/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx) | OIDC redirect with `is_preview` params |
-| [§3 Partner home](#3-partner-store-homepage) | [`[partner_id]/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(partners)/[partner_id]/index.tsx) | `GET /partners/{id}/categories/` |
-| [§4 Catalog](#4-browsing-the-menu) | [`[partner_id]/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(partners)/[partner_id]/index.tsx), [`products/[product_id].tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/products/[product_id].tsx) | `GET /products/`, `GET /products/{id}/` |
-| [§5–6 Cart](#6-cart-management) | [`index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/index.tsx), [`checkout.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/checkout.tsx), [`cart.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/cart.tsx) | `GET /basket/`, `POST …/add-product/`, line PATCH/DELETE |
-| [§7 Address](#7-shipping-address--methods) | [`landing.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/landing.tsx), [`addresses.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/addresses.ts) | `POST …/shipping-methods/`, `GET/POST /user-addresses/` |
-| [§8 Payment methods](#8-payment-methods) | [`checkout.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/checkout.tsx), [`paymentInputValidation.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/utils/paymentInputValidation.ts) | `GET …/payment-methods/available/` |
-| [§9 Checkout](#9-checkout) | [`checkout/index.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/index.tsx) | `POST /shop/api/checkout/` |
-| [§10 Pay](#10-complete-payment) | [`payment-details.tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/checkout/payment-details.tsx) | `GET /orders/{id}/`, `POST /payments/process/{ref}/` |
-| [§11 Orders](#11-order-management) | [`orders.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/orders.ts), [`order-placed/[order_id].tsx`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/app/(checkout)/order-placed/[order_id].tsx) | `GET /orders/`, `GET …/receipt/` |
-| [Appendix C Digital](#appendix-c-digital-assets--frontend-integration) | [`digitalAssets.ts`](https://github.com/fikachu/fikashop/tree/main/fikashop-mobile/src/stateStore/digitalAssets.ts) | `GET …/digital-assets/`, `GET …/orders/{id}/assets/` |
+That document lists journey phases, per-section behaviors (session merge, basket cache, payment polling), and links to TypeScript/curl examples.
 
 ---
 
