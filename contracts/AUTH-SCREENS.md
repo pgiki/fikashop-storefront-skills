@@ -8,6 +8,7 @@ Which headers to send on each storefront screen. Bearer = end-user OIDC `access_
 | Product list / detail | ANON or AUTH | Optional | **Required** | Include Session-Id if user may have cart |
 | Cart | ANON or AUTH | Optional | **Required** | `?partner=` optional |
 | Add / update cart | ANON or AUTH | Optional | **Required** | Session-Id **required** |
+| Apply promo code | ANON or AUTH | Optional | **Required** | `POST /basket/add-voucher/`; then refresh basket |
 | Address picker | ANON or AUTH | Optional* | **Required** | *Bearer if saving to account |
 | Shipping quote | ANON or AUTH | Optional | **Required** | `POST /basket/shipping-methods/` |
 | Checkout load | AUTH recommended | **Required**† | **Required** | Payment methods + basket recalc |
@@ -26,7 +27,7 @@ Which headers to send on each storefront screen. Bearer = end-user OIDC `access_
 
 ```http
 X-Partner-Id: 1
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -34,7 +35,7 @@ Accept: application/json
 
 ```http
 X-Partner-Id: 1
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer eyJhbGciOi...
 Content-Type: application/json
 Accept: application/json

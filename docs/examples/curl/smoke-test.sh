@@ -2,7 +2,7 @@
 # Minimal smoke test — partner categories + basket (requires curl + uuidgen on macOS/Linux)
 set -euo pipefail
 
-API_BASE="${API_BASE:-https://api.fikachu.com}"
+API_BASE="${API_BASE:-https://api.fikashop.app}"
 PARTNER_ID="${PARTNER_ID:-1}"
 HOSTNAME="$(echo "$API_BASE" | sed -E 's#https?://([^/]+).*#\1#')"
 UUID="$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]' || python3 -c 'import uuid; print(uuid.uuid4())')"

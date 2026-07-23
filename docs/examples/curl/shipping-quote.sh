@@ -2,7 +2,7 @@
 # Quote shipping methods — set SESSION_ID and shipping address fields.
 set -euo pipefail
 
-API_BASE="${API_BASE:-https://api.fikachu.com}"
+API_BASE="${API_BASE:-https://api.fikashop.app}"
 PARTNER_ID="${PARTNER_ID:-1}"
 SESSION_ID="${SESSION_ID:?Set SESSION_ID from smoke-test or add-to-cart}"
 

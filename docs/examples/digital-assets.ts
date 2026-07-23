@@ -31,7 +31,7 @@ function isDownloadExpired(expiresAt?: string): boolean {
 
 async function refreshDownloadUrl(assetId: number, tokens: TokenStore) {
   const res = await fetch(
-    `${process.env.API_BASE ?? 'https://api.fikachu.com'}/shop/api/digital-assets/assets/${assetId}/download/`,
+    `${process.env.API_BASE ?? 'https://api.fikashop.app'}/shop/api/digital-assets/assets/${assetId}/download/`,
     {
       method: 'POST',
       headers: {

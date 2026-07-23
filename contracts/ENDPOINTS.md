@@ -8,13 +8,15 @@ Payment capture: `{API_BASE}/payments/` — **not** under `shop/api`.
 |--------|------|--------|---------|
 | GET | `/partners/{PARTNER_ID}/` | Opt | Partner profile |
 | GET | `/partners/{PARTNER_ID}/categories/` | Opt | Homepage + menu categories |
-| GET | `/products/` | Opt | Product list (paginated) |
+| GET | `/ranges/` | Opt | Public product groups (requires partner scope) |
+| GET | `/ranges/{id}/` | Opt | Product group detail + images |
+| GET | `/products/` | Opt | Product list (paginated; optional `?range=`) |
 | GET | `/products/{id}/` | Opt | Product detail |
 | GET | `/basket/` | Opt | Current basket; `?payment_method_code=&shipping_method_code=` |
 | POST | `/basket/add-product/` | Opt | Add line; `?partner=` optional |
 | PATCH | `/baskets/{id}/lines/{line_id}/` | Opt | Update quantity |
 | DELETE | `/baskets/{id}/lines/{line_id}/` | Opt | Remove line |
-| POST | `/basket/add-voucher/` | Opt | Apply voucher |
+| POST | `/basket/add-voucher/` | Opt | Apply promo code (`vouchercode`); then `GET /basket/` for discounts |
 | POST | `/basket/shipping-methods/` | Opt | Quote shipping |
 | GET | `/user-addresses/` | **Req** | List saved addresses |
 | POST | `/user-addresses/` | **Req** | Create address |

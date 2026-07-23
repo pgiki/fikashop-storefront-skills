@@ -2,7 +2,7 @@
 # Poll payment state — requires ACCESS_TOKEN and ORDER_ID.
 set -euo pipefail
 
-API_BASE="${API_BASE:-https://api.fikachu.com}"
+API_BASE="${API_BASE:-https://api.fikashop.app}"
 PARTNER_ID="${PARTNER_ID:-1}"
 ACCESS_TOKEN="${ACCESS_TOKEN:?Set ACCESS_TOKEN}"
 ORDER_ID="${ORDER_ID:?Set ORDER_ID}"

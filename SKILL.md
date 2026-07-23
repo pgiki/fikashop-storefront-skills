@@ -1,11 +1,13 @@
 ---
 name: fikashop-storefront-skills
 description: >-
-  Integrate fikashop-api for custom storefronts (web or mobile): catalog, Session-Id
-  basket, shipping, checkout, order payment capture, and order history. Use for
-  X-Partner-Id single-partner stores, OIDC login, add-to-cart, POST /shop/api/checkout/,
-  POST /payments/process/{reference}/, Session-Id, start-session, or building a
-  fikashop storefront integration.
+  Integrate fikashop-api for custom storefronts (web or mobile): catalog, product
+  groups (ranges), Session-Id basket, promo codes (add-voucher), shipping,
+  checkout, order payment capture, and order history. Use for X-Partner-Id
+  single-partner stores, OIDC login, add-to-cart, POST /basket/add-voucher/,
+  POST /shop/api/checkout/, POST /payments/process/{reference}/, Session-Id,
+  start-session, curated shelves / GET /shop/api/ranges/, or building a fikashop
+  storefront integration.
 ---
 
 # Fikashop storefront integration
@@ -71,8 +73,10 @@ sequenceDiagram
 |-------|---------------|--------------|
 | Bootstrap | Persist `Session-Id`; optional `GET /auth/api/user/` | [INTEGRATION.md §1](contracts/INTEGRATION.md#1-bootstrap) |
 | Store home | `GET /partners/{PARTNER_ID}/categories/` | [CATALOG.md](contracts/CATALOG.md) |
+| Collections | `GET /ranges/`, `GET /products/?range=` (optional) | [CATALOG.md](contracts/CATALOG.md#product-groups-ranges) |
 | Product | `GET /products/{id}/` | [CATALOG.md](contracts/CATALOG.md) |
 | Cart | `GET /basket/`, `POST /basket/add-product/` | [INTEGRATION.md §3](contracts/INTEGRATION.md#3-basket) |
+| Promo code | `POST /basket/add-voucher/` (optional) | [INTEGRATION.md](contracts/INTEGRATION.md#voucher-promo-code) |
 | Address | Local geocode; `POST /basket/shipping-methods/` | [INTEGRATION.md §4](contracts/INTEGRATION.md#4-shipping) |
 | Login | OIDC PKCE → `GET /shop/api/start-session/` | [INTEGRATION.md §1](contracts/INTEGRATION.md#1-bootstrap) |
 | Checkout | `GET …/payment-methods/available/`, `POST /checkout/` (basket **id or URL**) | [INTEGRATION.md §5](contracts/INTEGRATION.md#5-checkout) |
@@ -91,7 +95,9 @@ sequenceDiagram
 | HTTP client + env | [INTEGRATION.md §1](contracts/INTEGRATION.md#1-bootstrap) | [client-setup.ts](docs/examples/client-setup.ts) |
 | OIDC + session merge | [INTEGRATION.md §1](contracts/INTEGRATION.md#1-bootstrap) | [oidc-pkce-flow.md](docs/examples/oidc-pkce-flow.md) |
 | Catalog / modifiers | [CATALOG.md](contracts/CATALOG.md) | [product-detail-modifiers.json](contracts/fixtures/product-detail-modifiers.json) |
+| Product groups | [CATALOG.md](contracts/CATALOG.md#product-groups-ranges) | [list-ranges.sh](docs/examples/curl/list-ranges.sh) |
 | Add to cart | [INTEGRATION.md §3](contracts/INTEGRATION.md#3-basket) | [add-to-cart.ts](docs/examples/add-to-cart.ts) |
+| Promo / voucher | [INTEGRATION.md](contracts/INTEGRATION.md#voucher-promo-code) | [add-voucher.sh](docs/examples/curl/add-voucher.sh) |
 | Payment fields | [PAYMENT-FIELDS.md](contracts/PAYMENT-FIELDS.md) | [payment-methods-available.json](contracts/fixtures/payment-methods-available.json) |
 | Checkout | [INTEGRATION.md §5](contracts/INTEGRATION.md#5-checkout) | [checkout-flow.ts](docs/examples/checkout-flow.ts), [guest-checkout.ts](docs/examples/guest-checkout.ts), [wallet-checkout.ts](docs/examples/wallet-checkout.ts), [checkout-request-by-id.json](contracts/fixtures/checkout-request-by-id.json) |
 | Orders / receipt | [ORDERS.md](contracts/ORDERS.md) | [order-detail.json](contracts/fixtures/order-detail.json), [order-receipt.json](contracts/fixtures/order-receipt.json) |

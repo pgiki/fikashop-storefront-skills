@@ -1,4 +1,4 @@
-<!-- synced from fikashop-api/docs/storefront-integration.md @ 89b359449ccf4c1af8a74a9a4d93d324b618eae4 — run scripts/sync-integration-doc.sh to refresh -->
+<!-- synced from fikashop-api/docs/storefront-integration.md @ aa40127e2104f0d9b9ef69f59c3684ea6c8e2dd8 — run scripts/sync-integration-doc.sh to refresh -->
 
 # Fikashop API — Third-Party Storefront Integration Guide
 
@@ -12,7 +12,7 @@ This guide is for developers building **custom storefront websites** (web or mob
 
 Read sections **in order** the first time. Use [Appendix A](#appendix-a-catalog-query-parameters), [Appendix D](#appendix-d-reference-implementation-map), [Appendix E](#appendix-e-production-considerations), and [§12](#12-error-reference) as lookups while building.
 
-**Example store:** All samples use **Demo Kitchen** (`{PARTNER_ID}` = `1`, host `api.fikachu.com`) unless noted otherwise.
+**Example store:** All samples use **Demo Kitchen** (`{PARTNER_ID}` = `1`, host `api.fikashop.app`) unless noted otherwise.
 
 ### Three API roots
 
@@ -20,8 +20,8 @@ Read sections **in order** the first time. Use [Appendix A](#appendix-a-catalog-
 | Root                   | Example                             | Used for                                                                |
 | ---------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
 | `{OIDC_ISS}`           | `https://oidc.fikachu.com`          | Authorize, token, refresh, userinfo only                                |
-| `{API_BASE}/shop/api/` | `https://api.fikachu.com/shop/api/` | Catalog, basket, checkout, orders                                       |
-| `{API_BASE}/payments/` | `https://api.fikachu.com/payments/` | `POST …/process/{reference}/` after checkout — **not** under `shop/api` |
+| `{API_BASE}/shop/api/` | `https://api.fikashop.app/shop/api/` | Catalog, basket, checkout, orders                                       |
+| `{API_BASE}/payments/` | `https://api.fikashop.app/payments/` | `POST …/process/{reference}/` after checkout — **not** under `shop/api` |
 
 
 ### Reference client and other docs
@@ -45,8 +45,9 @@ Build your UI around this flow. The **Storefront screen** column shows typical r
 | ---------- | --------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | Bootstrap  | Splash / app init           | Persist `Session-Id`; optional `GET /auth/api/user/` after login                   | `HttpClient`, `AuthStore` — [§1.5](#15-client-bootstrap-and-environment)      |
 | Store home | Partner menu                | `GET /partners/{PARTNER_ID}/categories/`                                           | `PartnerHomeScreen`, `CatalogStore` — [§3](#3-partner-store-homepage)        |
+| Collections | Product groups (optional)  | `GET /ranges/?partner=…`, `GET /products/?range={id}`                              | Optional curated shelves — [§4.4](#44-product-groups-ranges)                 |
 | Product    | Product detail              | `GET /products/{id}/`                                                              | `ProductDetailScreen` — [§4](#4-browsing-the-menu)                            |
-| Cart       | `/cart`                     | `GET /basket/`, `PATCH`/`DELETE` lines                                             | `CartScreen`, `BasketStore` — [§6](#6-cart-management)                        |
+| Cart       | `/cart`                     | `GET /basket/`, `PATCH`/`DELETE` lines; optional `POST /basket/add-voucher/` | `CartScreen`, `BasketStore` — [§6](#6-cart-management)                        |
 | Address    | Address picker              | Client geocode/cache; then `POST /basket/shipping-methods/`                        | `AddressScreen`, `CheckoutStore` — [§7](#7-shipping-address-and-methods)        |
 | Checkout   | `/checkout`                 | `GET …/payment-methods/available/`, `POST …/shipping-methods/`, `POST …/checkout/` | `CheckoutScreen` — [§8](#8-payment-methods), [§9](#9-checkout)                |
 | Pay        | `/checkout/payment-details` | `GET /orders/{id}/`, `POST /payments/process/{reference}/`                         | `PaymentScreen` — [§10](#10-complete-payment)                                 |
@@ -133,7 +134,7 @@ Enforce these before allowing checkout (reference app behavior):
 
 | Placeholder      | Meaning                                           |
 | ---------------- | ------------------------------------------------- |
-| `{API_BASE}`     | Fikashop API host, e.g. `https://api.fikachu.com` |
+| `{API_BASE}`     | Fikashop API host, e.g. `https://api.fikashop.app` |
 | `{OIDC_ISS}`     | Identity provider, `https://oidc.fikachu.com`     |
 | `{ACCESS_TOKEN}` | OAuth2 access token from the IdP                  |
 | `{SESSION_ID}`   | Basket session header value (see below)           |
@@ -159,11 +160,11 @@ Enforce these before allowing checkout (reference app behavior):
 SID:{ANON|AUTH}:{api_hostname}:{uuid}
 ```
 
-- `api_hostname` — hostname from `{API_BASE}` **without port** (e.g. `api.fikachu.com`).
+- `api_hostname` — hostname from `{API_BASE}` **without port** (e.g. `api.fikashop.app`).
 - Use `ANON` before login, `AUTH` after login.
 - Generate a new UUID v4 for each browser/device session.
 
-Example: `SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000`
+Example: `SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000`
 
 ---
 
@@ -191,7 +192,7 @@ Many list endpoints (products, categories, orders, etc.) return a paginated enve
 
 ```http
 GET /shop/api/products/?page=1&size=15 HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Accept: application/json
 ```
@@ -201,7 +202,7 @@ HTTP/1.1 200 OK
 {
   "page": 1,
   "is_paginated": true,
-  "next": "https://api.fikachu.com/shop/api/products/?page=2&size=15",
+  "next": "https://api.fikashop.app/shop/api/products/?page=2&size=15",
   "previous": null,
   "count": 42,
   "total_pages": 3,
@@ -304,7 +305,7 @@ Mirror a typical HTTP client setup: environment config plus a shop API module wi
 
 | Variable                                        | Example                       | Purpose                                                   |
 | ----------------------------------------------- | ----------------------------- | --------------------------------------------------------- |
-| `API_BASE` / `EXPO_PUBLIC_API_BASE_URL`         | `https://api.fikachu.com`     | Shop + payments host                                      |
+| `API_BASE` / `EXPO_PUBLIC_API_BASE_URL`         | `https://api.fikashop.app`     | Shop + payments host                                      |
 | `OIDC_ISS` / `EXPO_PUBLIC_OIDC_ISSUER`          | `https://oidc.fikachu.com`    | Authorize, token, userinfo                                |
 | `OIDC_CLIENT_ID` / `EXPO_PUBLIC_OIDC_CLIENT_ID` | `your-client-id`              | OAuth2 public client                                      |
 | `OIDC_REDIRECT_URI`                             | `https://your-store.com/auth` | Must match IdP registration                               |
@@ -548,10 +549,10 @@ After login, switch `Session-Id` to `AUTH` and call start-session so anonymous b
 
 ```http
 GET /shop/api/start-session/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -576,9 +577,9 @@ HTTP/1.1 200 OK
 **curl**
 
 ```bash
-export API_BASE="https://api.fikachu.com"
+export API_BASE="https://api.fikashop.app"
 export ACCESS_TOKEN="eyJhbGciOi..."
-export SESSION_ID="SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000"
+export SESSION_ID="SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000"
 
 curl -sS "${API_BASE}/shop/api/start-session/" \
   -H "X-Partner-Id: ${PARTNER_ID}" \
@@ -658,9 +659,9 @@ Single call for the store landing page: partner profile + category tree (only ca
 
 ```http
 GET /shop/api/partners/{PARTNER_ID}/categories/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -671,7 +672,7 @@ HTTP/1.1 200 OK
 {
     "id": 1,
     "wallet_id": "809a3e2f-5c3e-4896-8d14-d3d1ff73fa7d",
-    "url": "https://api.fikachu.com/shop/api/partners/1/",
+    "url": "https://api.fikashop.app/shop/api/partners/1/",
     "code": "demo-kitchen",
     "name": "Demo Kitchen",
     "email": "info@email.com",
@@ -679,7 +680,7 @@ HTTP/1.1 200 OK
     "bio": "This is a good place",
     "description": "Choma (BBQ) | Makange | Grilled & Fried Chicken | Seafood | Sides (Rice, Chips & Plantains - Ndizi)",
     "logo": null,
-    "cover_photo": "https://api.fikachu.com/media/cover.png",
+    "cover_photo": "https://api.fikashop.app/media/cover.png",
     "min_order_amount": 1.0,
     "is_active": true,
     "is_featured": false,
@@ -795,7 +796,7 @@ HTTP/1.1 200 OK
                 -6.77731500547664
             ]
         },
-        "url": "https://api.fikachu.com/shop/api/admin/partner-addresses/2/",
+        "url": "https://api.fikashop.app/shop/api/admin/partner-addresses/2/",
         "is_default": true
     }
 }
@@ -807,7 +808,7 @@ If you only need store metadata (no category tree in the same response):
 
 ```http
 GET /shop/api/partners/{PARTNER_ID}/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Accept: application/json
 ```
@@ -817,7 +818,7 @@ HTTP/1.1 200 OK
 {
     "id": 1,
     "wallet_id": "809a3e2f-5c3e-4896-8d14-d3d1ff73fa7d",
-    "url": "https://api.fikachu.com/shop/api/partners/1/",
+    "url": "https://api.fikashop.app/shop/api/partners/1/",
     "code": "demo-kitchen",
     "name": "Demo Kitchen",
     "email": "",
@@ -918,7 +919,7 @@ HTTP/1.1 200 OK
                 -6.77731500547664
             ]
         },
-        "url": "https://api.fikachu.com/shop/api/admin/partner-addresses/2/",
+        "url": "https://api.fikashop.app/shop/api/admin/partner-addresses/2/",
         "is_default": true
     }
 }
@@ -936,7 +937,7 @@ Include `X-Partner-Id: {PARTNER_ID}` on every catalog request.
 
 ```http
 GET /shop/api/categories/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Accept: application/json
 ```
@@ -977,12 +978,14 @@ Nested paths: `GET /shop/api/categories/mains/burgers/` (with `X-Partner-Id` hea
 
 ```http
 GET /shop/api/products/?structure=standalone&is_public=true&partner=1&search=burger HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: 1
 Accept: application/json
 ```
 
 The reference app sends `is_public=true` and `partner={PARTNER_ID}` on menu product lists (optional `is_public=true` query). `X-Partner-Id` alone is usually sufficient for a single-store site; include `partner` when mirroring mobile.
+
+To list products in a public **product group** (Oscar range), add `range={id-or-slug}` (requires partner scope). See [§4.4](#44-product-groups-ranges).
 
 **Response**
 
@@ -995,7 +998,7 @@ HTTP/1.1 200 OK
   "results": [
     {
       "id": 42,
-      "url": "https://api.fikachu.com/shop/api/products/42/",
+      "url": "https://api.fikashop.app/shop/api/products/42/",
       "title": "Classic Burger",
       "slug": "classic-burger",
       "upc": "BURGER-001",
@@ -1006,7 +1009,7 @@ HTTP/1.1 200 OK
       "images": [
         {
           "id": 5,
-          "original": "https://api.fikachu.com/media/products/burger.jpg",
+          "original": "https://api.fikashop.app/media/products/burger.jpg",
           "caption": ""
         }
       ],
@@ -1030,9 +1033,9 @@ HTTP/1.1 200 OK
 
 ```http
 GET /shop/api/products/classic-burger/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -1050,7 +1053,7 @@ HTTP/1.1 200 OK
   "options": [
     {
       "id": 1,
-      "url": "https://api.fikachu.com/shop/api/options/special-instructions/",
+      "url": "https://api.fikashop.app/shop/api/options/special-instructions/",
       "code": "special-instructions",
       "name": "Special instructions",
       "type": "text",
@@ -1118,6 +1121,64 @@ HTTP/1.1 200 OK
 }
 ```
 
+### 4.4 Product groups (ranges)
+
+Merchants curate **product groups** (Oscar **ranges**) in the partner admin app for promotions and optional storefront shelves. When a group is marked public (`is_public`), storefront clients can browse it.
+
+**Management** (partner staff only — not for customer apps):
+
+- `GET/POST/PATCH/DELETE /shop/api/admin/ranges/`
+- Pin / exclude products: `/shop/api/admin/ranges/{id}/products/` and `…/excluded-products/`
+- Gallery: `/shop/api/admin/range-images/`
+
+**Browse** (customer / whitelabel storefront):
+
+```http
+GET /shop/api/ranges/?partner=1 HTTP/1.1
+Host: api.fikashop.app
+X-Partner-Id: 1
+Accept: application/json
+```
+
+Requires partner scope (`?partner=`, `X-Partner-Id`, or session). Returns only that partner’s **public** merchant ranges (not private promotion groups, not other partners).
+
+```json
+HTTP/1.1 200 OK
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 7,
+      "name": "Lunch specials",
+      "slug": "lunch-specials",
+      "description": "Weekday lunch picks",
+      "images": [
+        {
+          "id": 1,
+          "original": "https://api.fikashop.app/media/images/ranges/shelf.jpg",
+          "caption": "",
+          "display_order": 0
+        }
+      ],
+      "product_count": 12
+    }
+  ]
+}
+```
+
+Detail: `GET /shop/api/ranges/{id}/?partner=1` (same shape; 404 if private or wrong partner).
+
+Membership uses Oscar’s full resolution (pinned products ∪ category/class rules − exclusions), intersected with partner stock — not the pin table alone:
+
+```http
+GET /shop/api/products/?partner=1&range=7&is_public=true HTTP/1.1
+Host: api.fikashop.app
+X-Partner-Id: 1
+Accept: application/json
+```
+
+`range` accepts the group’s numeric `id` or `slug`. Without partner scope, the filter returns an empty list.
+
 ---
 
 ## 5. Add to cart: options and modifier groups
@@ -1179,9 +1240,9 @@ Modifier UI fields (on `stockrecords[].modifier_groups`):
 
 ```http
 GET /shop/api/basket/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -1194,7 +1255,7 @@ HTTP/1.1 200 OK
   "owner": null,
   "status": "Open",
   "lines": [],
-  "url": "https://api.fikachu.com/shop/api/baskets/17/",
+  "url": "https://api.fikashop.app/shop/api/baskets/17/",
   "total_excl_tax": "0.00",
   "total_incl_tax": "0.00",
   "total_incl_tax_excl_discounts": "0.00",
@@ -1209,9 +1270,9 @@ Optional query parameters (reference app passes these on every basket refresh so
 
 ```http
 GET /shop/api/basket/?partner=1&payment_method_code=mpesa&shipping_method_code=standard HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: 1
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -1225,9 +1286,9 @@ See [§5](#5-add-to-cart-options-and-modifier-groups) for field rules. Example w
 
 ```http
 POST /shop/api/basket/add-product/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
@@ -1252,7 +1313,7 @@ HTTP/1.1 200 OK
   "status": "Open",
   "lines": [
     {
-      "url": "https://api.fikachu.com/shop/api/baskets/17/lines/88/",
+      "url": "https://api.fikashop.app/shop/api/baskets/17/lines/88/",
       "product": {
         "id": 42,
         "title": "Classic Burger"
@@ -1307,9 +1368,9 @@ HTTP/1.1 406 Not Acceptable
 
 ```http
 PATCH /shop/api/baskets/17/lines/88/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
@@ -1325,9 +1386,9 @@ Content-Type: application/json
 
 ```http
 DELETE /shop/api/baskets/17/lines/88/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Response**
@@ -1336,15 +1397,17 @@ Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
 HTTP/1.1 204 No Content
 ```
 
-### 6.5 Add voucher
+### 6.5 Add voucher (promo code)
+
+Apply a **partner-scoped** promo code to the session basket. Merchants create codes in admin (`/shop/api/admin/vouchers/`); storefronts only apply them here.
 
 **Request**
 
 ```http
 POST /shop/api/basket/add-voucher/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
@@ -1352,7 +1415,37 @@ Content-Type: application/json
 }
 ```
 
-**Response** — updated basket JSON (200).
+`vouchercode` is required. The API uppercases it and resolves the voucher for the current partner (`X-Partner-Id` / `?partner=` / basket partner). Missing partner context fails validation.
+
+**Success (`200`)** — voucher JSON (not the basket). Typical fields include `id`, `name`, `code`, `start_datetime`, `end_datetime` (see OpenAPI `Voucher`). Then refresh the basket to show discounts:
+
+```http
+GET /shop/api/basket/?partner={PARTNER_ID} HTTP/1.1
+Host: api.fikashop.app
+X-Partner-Id: {PARTNER_ID}
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+```
+
+Basket totals update; `voucher_discounts` lists applied discounts, e.g. `{ "name": "…", "amount": "1000.00", "voucher": { … } }`.
+
+**Failure (`406`)** — examples:
+
+```json
+{ "vouchercode": ["Voucher code unknown"] }
+```
+
+```json
+{ "non_field_errors": ["The 'WELCOME10' voucher has expired"] }
+```
+
+```json
+{ "reason": "Your basket does not qualify for a voucher discount" }
+```
+
+(The last case means the code was valid but offered no discount for the current lines — the API removes it from the basket.)
+
+**Client behavior:** POST `/basket/add-voucher/` → on success `GET /basket/` and render `voucher_discounts` + discounted totals on cart/checkout.
 
 ### 6.6 Add product (mobile / URL style)
 
@@ -1360,13 +1453,13 @@ The reference app sends the product hypermedia URL instead of numeric `id`:
 
 ```http
 POST /shop/api/basket/add-product/?partner=1 HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: 1
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "url": "https://api.fikachu.com/shop/api/products/42/",
+  "url": "https://api.fikashop.app/shop/api/products/42/",
   "quantity": 1,
   "options": [{ "option": "special-instructions", "value": "No onions" }],
   "modifier_groups": {
@@ -1395,10 +1488,10 @@ Authenticated users can save addresses. Country on addresses and checkout uses *
 
 ```http
 GET /shop/api/user-addresses/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -1435,7 +1528,7 @@ HTTP/1.1 200 OK
 
 ```http
 POST /shop/api/user-addresses/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Content-Type: application/json
@@ -1475,9 +1568,9 @@ The reference mobile app uses **POST** with a draft shipping address (same shape
 
 ```http
 POST /shop/api/basket/shipping-methods/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
@@ -1526,7 +1619,7 @@ HTTP/1.1 200 OK
 ]
 ```
 
-Use the chosen method’s `code` as `shipping_method_code` at checkout.
+Use the chosen method's `code` as `shipping_method_code` at checkout.
 
 ### 7.4 Delivery location collection (reference app)
 
@@ -1608,10 +1701,10 @@ Partner-specific methods for the current basket (falls back to public **cash** w
 
 ```http
 GET /shop/api/checkout/payment-methods/available/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 ```
 
@@ -1633,7 +1726,7 @@ HTTP/1.1 200 OK
     "name": "M-Pesa",
     "method_type": "online-payments",
     "description": "Pay with Vodacom M-Pesa",
-    "image_url": "https://api.fikachu.com/media/source_types/images/mpesa.png",
+    "image_url": "https://api.fikashop.app/media/source_types/images/mpesa.png",
     "input_fields": [
       {
         "code": "msisdn",
@@ -1709,7 +1802,7 @@ Send `X-Partner-Id: {PARTNER_ID}` on this request (and on [§8](#8-payment-metho
 
 Required concepts:
 
-- `basket` — open basket **id** (integer) or URL, e.g. `17` or `https://api.fikachu.com/shop/api/baskets/17/`
+- `basket` — open basket **id** (integer) or URL, e.g. `17` or `https://api.fikashop.app/shop/api/baskets/17/`
 - `shipping_address` — inline object (ISO-2 `country`, e.g. `"TZ"`); **omit when `user_address` is set** and the saved row is complete ([§7.6](#76-user_address-at-checkout))
 - `user_address` — optional saved address id; when set without `shipping_address`, the API fills shipping from the address book
 - `shipping_method_code` — from [§7.3](#73-shipping-methods-for-basket); use `no-shipping-required` when appropriate
@@ -1738,14 +1831,14 @@ Authenticated delivery order with location, saved address link, and M-Pesa. The 
 
 ```http
 POST /shop/api/checkout/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: 1
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "user_address": 5,
   "shipping_method_code": "standard",
   "shipping_address": {
@@ -1809,13 +1902,13 @@ When your deployment has `OSCAR_ALLOW_ANON_CHECKOUT` enabled, users may checkout
 
 ```http
 POST /shop/api/checkout/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: 1
-Session-Id: SID:ANON:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "guest_email": "guest@example.com",
   "shipping_method_code": "pick-up",
   "shipping_address": {
@@ -1865,14 +1958,14 @@ Example: M-Pesa has `code: "mpesa"`, `method_type: "online-payments"` → key `o
 
 ```http
 POST /shop/api/checkout/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "shipping_method_code": "standard",
   "shipping_address": {
     "first_name": "Asha",
@@ -1935,7 +2028,7 @@ HTTP/1.1 200 OK
       "product": {
         "id": 42,
         "title": "Classic Burger",
-        "image_url": "https://api.fikachu.com/media/products/burger.jpg"
+        "image_url": "https://api.fikashop.app/media/products/burger.jpg"
       },
       "partner_id": 1,
       "partner_name": "Demo Kitchen",
@@ -1980,14 +2073,14 @@ From [§8](#8-payment-methods), read `method_type` (`online-payments`) and `code
 
 ```http
 POST /shop/api/checkout/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
-Session-Id: SID:AUTH:api.fikachu.com:550e8400-e29b-41d4-a716-446655440000
+Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "shipping_method_code": "standard",
   "shipping_address": {
     "first_name": "Asha",
@@ -2044,13 +2137,13 @@ Continue with `POST /payments/process/{reference}/` in [§10](#10-complete-payme
 
 ```http
 POST /shop/api/checkout/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "shipping_method_code": "pick-up",
   "shipping_address": {
     "first_name": "Asha",
@@ -2143,7 +2236,7 @@ Treat payment rows with **actionable** statuses as needing completion: `waiting`
 
 ```http
 GET /shop/api/orders/902/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2198,7 +2291,7 @@ Build the payment form from `payment_method.input_fields`. Prefill billing field
 
 ```http
 POST /payments/process/gw-token-def456/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Content-Type: application/json
@@ -2322,7 +2415,7 @@ Lighter alternative to full order detail when waiting for async capture:
 
 ```http
 GET /shop/api/checkout/payment-states/902/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2419,7 +2512,7 @@ stateDiagram-v2
 
 ```http
 GET /shop/api/orders/?page=1 HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2436,7 +2529,7 @@ HTTP/1.1 200 OK
     {
       "id": 901,
       "number": "100000901",
-      "url": "https://api.fikachu.com/shop/api/orders/901/",
+      "url": "https://api.fikashop.app/shop/api/orders/901/",
       "status": "Pending",
       "currency": "TZS",
       "total_incl_tax": "15500.00",
@@ -2470,7 +2563,7 @@ HTTP/1.1 200 OK
 
 ```http
 GET /shop/api/orders/100000901/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2541,7 +2634,7 @@ HTTP/1.1 200 OK
 
 ```http
 GET /shop/api/orders/100000901/receipt/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2552,7 +2645,7 @@ Accept: application/json
 ```json
 HTTP/1.1 200 OK
 {
-  "receipt_url": "https://api.fikachu.com/invoices/api/order-100000901/"
+  "receipt_url": "https://api.fikashop.app/invoices/api/order-100000901/"
 }
 ```
 
@@ -2625,7 +2718,7 @@ or field errors:
 
 ```http
 GET /shop/api/orders/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer invalid-token
 ```
@@ -2645,7 +2738,7 @@ HTTP/1.1 401 Unauthorized
 
 ```http
 GET /shop/api/products/unknown-slug/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 ```
 
@@ -2664,7 +2757,7 @@ HTTP/1.1 404 Not Found
 
 ```json
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
   "payment": {
     "cash": { "enabled": false }
   }
@@ -2734,12 +2827,19 @@ Common query parameters on `GET /shop/api/products/`:
 | `partner`     | `1`            | Filter products stocked for this partner (mobile sends this) |
 | `is_public`   | `true`         | Public catalog only (reference app default)                  |
 | `categories__id` | `10`        | Filter by category id                                        |
+| `range`       | `7` or `lunch-specials` | Public product group id or slug (requires partner scope) |
 
 
 Category navigation:
 
 - `GET /shop/api/categories/` — tree
 - `GET /shop/api/categories/mains/burgers/` — products in nested category (breadcrumbs path)
+
+Product groups (optional curated shelves):
+
+- `GET /shop/api/ranges/?partner={PARTNER_ID}` — public groups for the partner
+- `GET /shop/api/ranges/{id}/?partner={PARTNER_ID}` — group detail + images
+- `GET /shop/api/products/?partner={PARTNER_ID}&range={id}` — resolved membership products
 
 Always send `X-Partner-Id`. For additional filters and response fields, use `{API_BASE}/docs/` (OpenAPI).
 
@@ -2753,9 +2853,10 @@ This guide covers **customer storefront checkout** for a single provisioned part
 | Topic                                      | Notes                                                                                                                                                               |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Partner onboarding / admin APIs            | FikaChu provisions `{PARTNER_ID}`; use `/shop/api/admin/` only in staff apps                                                                                        |
+| Product group **management**               | Create/edit ranges, pin products, images: `/shop/api/admin/ranges/` (staff). Customer browse uses public `/shop/api/ranges/` — [§4.4](#44-product-groups-ranges) |
+| Voucher / offer **management**             | Create codes and offers: `/shop/api/admin/vouchers/`, `/shop/api/admin/offers/` (staff). Applying a code: [§6.5](#65-add-voucher-promo-code)                      |
 | Marketplace partner discovery              | Optional via `GET /partners/`; not required for a branded single-store site                                             |
 | Subscription wallet top-up                 | `POST /subscriptions/api/subscriptions/wallet-deposit/` — separate from shop checkout (separate from shop checkout) |
-| Voucher / promo UI                         | API supports `POST /shop/api/basket/add-voucher/`; reference app does not implement apply-code flow                                                                 |
 | Deferred cash (`complete-deferred-payment`) | Requires server-signed `order` token not exposed on storefront responses — staff/admin only ([§10.7](#107-deferred-payment-staff-only))                              |
 | Appointments, domains, standalone invoices | Coordinate with your FikaChu operator for appointments, domains, and standalone invoice APIs                                                                                                             |
 | Payment provider webhooks                  | Server-side only: `POST /payments/webhook/{variant}/` — your storefront polls order status instead                                                                  |
@@ -2845,7 +2946,7 @@ Example line shape:
 
 ```http
 GET /shop/api/products/{id-or-slug}/digital-assets/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Accept: application/json
 ```
@@ -2867,7 +2968,7 @@ HTTP/1.1 200 OK
       "mime_type": "application/pdf",
       "byte_size": 524288,
       "is_preview": true,
-      "preview_download_url": "https://api.fikachu.com/shop/api/digital-assets/preview/{token}/",
+      "preview_download_url": "https://api.fikashop.app/shop/api/digital-assets/preview/{token}/",
       "preview_download_expires_at": "2026-05-16T10:05:00Z"
     },
     {
@@ -2898,7 +2999,7 @@ Preview stream:
 
 ```http
 GET /shop/api/digital-assets/preview/{token}/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 ```
 
 ### C.5 When downloads are available
@@ -2946,7 +3047,7 @@ sequenceDiagram
 
 ```http
 GET /shop/api/orders/{id-or-number}/assets/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 X-Partner-Id: {PARTNER_ID}
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
@@ -2973,7 +3074,7 @@ HTTP/1.1 200 OK
       "order_line_id": 301,
       "granted_at": "2026-05-16T10:00:00Z",
       "source": "order",
-      "download_url": "https://api.fikachu.com/shop/api/digital-assets/download/{signed-token}/",
+      "download_url": "https://api.fikashop.app/shop/api/digital-assets/download/{signed-token}/",
       "download_expires_at": "2026-05-16T10:05:00Z"
     }
   ]
@@ -3001,7 +3102,7 @@ HTTP/1.1 200 OK
 
 ```http
 GET /shop/api/digital-assets/download/{signed-token}/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 ```
 
 The token embeds authorization; callers usually **do not** send `Authorization` on this GET. Throttling applies per deployment.
@@ -3010,7 +3111,7 @@ The token embeds authorization; callers usually **do not** send `Authorization` 
 
 ```http
 POST /shop/api/digital-assets/assets/{asset_id}/download/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
 ```
@@ -3020,7 +3121,7 @@ Accept: application/json
 ```json
 HTTP/1.1 200 OK
 {
-  "download_url": "https://api.fikachu.com/shop/api/digital-assets/download/{new-token}/",
+  "download_url": "https://api.fikashop.app/shop/api/digital-assets/download/{new-token}/",
   "download_expires_at": "2026-05-16T10:10:00Z"
 }
 ```
@@ -3043,7 +3144,7 @@ Products with `access_mode: subscription` (product attribute) use **subscription
 
 ```http
 GET /shop/api/digital-assets/library/ HTTP/1.1
-Host: api.fikachu.com
+Host: api.fikashop.app
 Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
 ```

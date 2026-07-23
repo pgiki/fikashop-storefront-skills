@@ -2,7 +2,7 @@
 # Capture payment after checkout — requires ACCESS_TOKEN, ORDER_ID, REFERENCE.
 set -euo pipefail
 
-API_BASE="${API_BASE:-https://api.fikachu.com}"
+API_BASE="${API_BASE:-https://api.fikashop.app}"
 PARTNER_ID="${PARTNER_ID:-1}"
 ACCESS_TOKEN="${ACCESS_TOKEN:?Set ACCESS_TOKEN}"
 REFERENCE="${REFERENCE:?Set payments[].reference from order}"

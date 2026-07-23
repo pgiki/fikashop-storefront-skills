@@ -2,7 +2,7 @@
 # Add a product to basket — requires PRODUCT_ID env var.
 set -euo pipefail
 
-API_BASE="${API_BASE:-https://api.fikachu.com}"
+API_BASE="${API_BASE:-https://api.fikashop.app}"
 PARTNER_ID="${PARTNER_ID:-1}"
 PRODUCT_ID="${PRODUCT_ID:-42}"
 HOSTNAME="$(echo "$API_BASE" | sed -E 's#https?://([^/]+).*#\1#')"

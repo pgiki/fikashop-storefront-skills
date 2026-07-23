@@ -7,6 +7,8 @@ Integrator QA list before go-live. Detailed steps: [docs/storefront-integration.
 - [ ] Bootstrap HTTP client: `X-Partner-Id`, persisted `Session-Id: SID:ANON:{hostname}:{uuid}`, 401 refresh
 - [ ] Store home: `GET /shop/api/partners/{PARTNER_ID}/categories/`; enforce `is_open` and `min_order_amount`
 - [ ] Menu: `GET /products/` → detail → `POST /basket/add-product/` with `options` / `modifier_groups`
+- [ ] Optional collections: `GET /ranges/` → `GET /products/?range={id}` ([CATALOG.md](CATALOG.md#product-groups-ranges))
+- [ ] Optional promo code: `POST /basket/add-voucher/` → `GET /basket/` for `voucher_discounts` ([INTEGRATION.md](INTEGRATION.md#voucher-promo-code))
 - [ ] Delivery address (local + coordinates); `POST /basket/shipping-methods/`
 - [ ] Checkout: `GET …/payment-methods/available/`; login before submit (recommended)
 - [ ] `POST /shop/api/checkout/` with full `shipping_address` (+ optional `user_address`)

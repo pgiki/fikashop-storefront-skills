@@ -26,6 +26,20 @@ Field reason:
 { "reason": { "id": ["This field is required."] } }
 ```
 
+## Add voucher (`406`)
+
+`POST /shop/api/basket/add-voucher/` — partner-scoped; requires `Session-Id` + `X-Partner-Id`.
+
+```json
+{ "vouchercode": ["Voucher code unknown"] }
+```
+
+```json
+{ "reason": "Your basket does not qualify for a voucher discount" }
+```
+
+On success (`200`), response is the **voucher** object — call `GET /basket/` for `voucher_discounts` and totals. See [INTEGRATION.md](INTEGRATION.md#voucher-promo-code).
+
 ## Checkout (`406`)
 
 ```json

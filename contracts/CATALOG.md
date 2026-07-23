@@ -13,6 +13,7 @@ Product discovery for single-partner storefronts. Full examples: [docs/storefron
 | `partner` | `1` | Filter products stocked for this partner |
 | `is_public` | `true` | Public catalog only |
 | `categories__id` | `10` | Filter by category id |
+| `range` | `7` or `lunch-specials` | Public product group (Oscar range) id or slug; requires partner scope |
 
 Always send `X-Partner-Id`. For a fixed single-store site, the header alone is usually sufficient; add `partner` when mirroring the reference mobile client.
 
@@ -25,6 +26,18 @@ GET /shop/api/partners/{PARTNER_ID}/categories/
 ```
 
 `GET /partners/{PARTNER_ID}/categories/` returns partner profile + category tree in one call (store homepage).
+
+## Product groups (ranges)
+
+Optional curated shelves. Merchants manage groups via `/shop/api/admin/ranges/` (staff). Storefronts browse **public** groups only:
+
+```http
+GET /shop/api/ranges/?partner={PARTNER_ID}
+GET /shop/api/ranges/{id}/?partner={PARTNER_ID}
+GET /shop/api/products/?partner={PARTNER_ID}&range={id}&is_public=true
+```
+
+List/detail require partner scope (`?partner=` / `X-Partner-Id` / session). Response fields: `id`, `name`, `slug`, `description`, `images[]`, `product_count` (resolved membership). Private or other-partner groups return 404 on detail and are omitted from list.
 
 ## Product detail
 

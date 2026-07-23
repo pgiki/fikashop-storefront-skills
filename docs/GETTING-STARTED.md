@@ -7,7 +7,7 @@ Prerequisites and first successful API call for a **single-partner** fikashop st
 | Item | Example | You send as |
 | ---- | ------- | ----------- |
 | Partner store | Demo Kitchen | `X-Partner-Id: 1` or `demo-kitchen` |
-| API host | `https://api.fikachu.com` | `API_BASE` |
+| API host | `https://api.fikashop.app` | `API_BASE` |
 | Identity provider | `https://oidc.fikachu.com` | `OIDC_ISS` |
 | OIDC client | Your app registration | `OIDC_CLIENT_ID` + redirect URI |
 
@@ -17,7 +17,7 @@ You do **not** onboard partners via the storefront API. See [contracts/OUT-OF-SC
 
 | Variable | Example | Purpose |
 | -------- | ------- | ------- |
-| `API_BASE` | `https://api.fikachu.com` | Shop + payments host |
+| `API_BASE` | `https://api.fikashop.app` | Shop + payments host |
 | `OIDC_ISS` | `https://oidc.fikachu.com` | Authorize, token, userinfo |
 | `OIDC_CLIENT_ID` | `your-client-id` | OAuth2 public client (PKCE) |
 | `OIDC_REDIRECT_URI` | `https://your-store.com/auth` | Must match IdP registration |
@@ -49,9 +49,9 @@ See [docs/examples/client-setup.ts](examples/client-setup.ts).
 Verify partner scope and catalog:
 
 ```bash
-export API_BASE="https://api.fikachu.com"
+export API_BASE="https://api.fikashop.app"
 export PARTNER_ID="1"
-export SESSION_ID="SID:ANON:api.fikachu.com:$(uuidgen | tr '[:upper:]' '[:lower:]')"
+export SESSION_ID="SID:ANON:api.fikashop.app:$(uuidgen | tr '[:upper:]' '[:lower:]')"
 
 curl -sS "${API_BASE}/shop/api/partners/${PARTNER_ID}/categories/" \
   -H "X-Partner-Id: ${PARTNER_ID}" \
@@ -59,7 +59,7 @@ curl -sS "${API_BASE}/shop/api/partners/${PARTNER_ID}/categories/" \
   -H "Accept: application/json" | head -c 500
 ```
 
-Or run the [curl examples](examples/curl/README.md) — start with [smoke-test.sh](examples/curl/smoke-test.sh).
+Or run the [curl examples](examples/curl/README.md) — start with [smoke-test.sh](examples/curl/smoke-test.sh). Optional curated shelves: [list-ranges.sh](examples/curl/list-ranges.sh).
 
 ## API reference tools
 

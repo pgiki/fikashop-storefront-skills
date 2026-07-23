@@ -5,7 +5,7 @@
  * Storage: use localStorage (web) or AsyncStorage (React Native / Expo).
  * Pass a custom get/set pair instead of localStorage when not in the browser.
  */
-const API_BASE = process.env.API_BASE ?? 'https://api.fikachu.com';
+const API_BASE = process.env.API_BASE ?? 'https://api.fikashop.app';
 const PARTNER_ID = process.env.PARTNER_ID ?? '1';
 const OIDC_ISS = process.env.OIDC_ISS ?? 'https://oidc.fikachu.com';
 const SESSION_STORAGE_KEY = 'fikashop_session_id';

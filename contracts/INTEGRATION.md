@@ -118,6 +118,18 @@ Pagination envelope: `{ page, count, total_pages, results: [...] }`. Default `si
 
 Catalog list/detail: `Session-Id` recommended; Bearer optional for anonymous browse.
 
+### Product groups (ranges) — optional
+
+Public curated shelves (Oscar ranges marked `is_public`). Requires partner scope.
+
+```http
+GET /shop/api/ranges/?partner={PARTNER_ID}
+GET /shop/api/ranges/{id}/?partner={PARTNER_ID}
+GET /shop/api/products/?partner={PARTNER_ID}&range={id_or_slug}&is_public=true
+```
+
+Full contract: [CATALOG.md](CATALOG.md#product-groups-ranges). Management stays on `/shop/api/admin/ranges/` (staff only).
+
 ---
 
 ## 3. Basket
@@ -163,12 +175,29 @@ DELETE /shop/api/baskets/{basket_id}/lines/{line_id}/
 
 Append `?partner={PARTNER_ID}` when mirroring mobile.
 
-### Voucher
+### Voucher (promo code)
+
+Apply a partner-scoped promo code to the session basket. Requires `Session-Id` and partner context (`X-Partner-Id` / `?partner=`).
 
 ```http
 POST /shop/api/basket/add-voucher/
+Content-Type: application/json
+
 { "vouchercode": "WELCOME10" }
 ```
+
+| Rule | Detail |
+|------|--------|
+| Body | `vouchercode` (string, required). Server uppercases the code. |
+| Partner | Code must belong to the current partner; missing partner → validation error. |
+| Success `200` | **Voucher** object (not the full basket). Refresh with `GET /basket/` to read `voucher_discounts` and updated totals. |
+| Failure `406` | Unknown / expired / not available to user, or basket does not qualify for a discount. Body is field errors or `{ "reason": "…" }`. |
+
+**Client flow:** POST add-voucher → on `200`, `GET /basket/?partner=…` (optionally with payment/shipping method codes) → show `voucher_discounts[]` (`name`, `amount`) and discounted totals.
+
+Creating voucher codes is staff-only (`/shop/api/admin/vouchers/`) — [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md).
+
+Example: [docs/examples/curl/add-voucher.sh](../docs/examples/curl/add-voucher.sh).
 
 ### Single-partner constraint
 
