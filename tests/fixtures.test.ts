@@ -29,7 +29,7 @@ const FIXTURE_KEYS: Record<string, string[]> = {
   'payment-states.json': ['order_status', 'payment_method_states'],
   'product-detail-digital.json': ['id', 'is_digital'],
   'product-detail-modifiers.json': ['id', 'stockrecords'],
-  'order-receipt.json': ['receipt_url'],
+  'order-receipt.json': ['uuid', 'number', 'items', 'fiscal', 'can_edit'],
 };
 
 describe('status-map.json', () => {

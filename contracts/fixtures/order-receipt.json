@@ -1,3 +1,22 @@
 {
-  "receipt_url": "https://api.fikachu.com/invoices/api/order-100000901/"
+  "id": 901,
+  "uuid": "order-100000901",
+  "number": "100000901",
+  "status": "paid",
+  "currency": "TZS",
+  "can_edit": true,
+  "fiscal": {
+    "status": "idle",
+    "enabled": false,
+    "submit_mode": null
+  },
+  "items": [
+    {
+      "id": 1,
+      "name": "Item",
+      "quantity": "1.00",
+      "unit_cost": "15500.00",
+      "tax_code": 1
+    }
+  ]
 }

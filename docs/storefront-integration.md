@@ -2628,7 +2628,9 @@ HTTP/1.1 200 OK
 }
 ```
 
-### 11.3 Order receipt URL
+### 11.3 Order receipt (invoice document)
+
+Get-or-creates the commercial invoice for the order (`uuid` is `order-{number}`) and returns the same JSON as merchant invoice retrieve (line items, nested `fiscal`, `can_edit`).
 
 **Request**
 
@@ -2640,16 +2642,17 @@ Authorization: Bearer {ACCESS_TOKEN}
 Accept: application/json
 ```
 
-**Response**
+**Response:** `200` invoice JSON (`id`, `uuid`, `items`, `fiscal`, …).
 
-```json
-HTTP/1.1 200 OK
-{
-  "receipt_url": "https://api.fikashop.app/invoices/api/order-100000901/"
-}
+Download the commercial PDF:
+
+```http
+GET /shop/api/orders/100000901/receipt/?format=pdf&document=receipt HTTP/1.1
+Authorization: Bearer {ACCESS_TOKEN}
+Accept: application/pdf
 ```
 
-Append `?return_format=pdf` (or `html`) on the request to redirect to the PDF/HTML receipt instead of JSON.
+`document=invoice` uses stored invoice labels; `document=receipt` (default for this PDF) overlays receipt titles. TRA fiscal PDF is a separate tax-authority API keyed by invoice `id`.
 
 The legacy path `/shop/api/orders/{id}/invoice/` permanently redirects to `/receipt/` with the same query string.
 
@@ -2676,7 +2679,7 @@ On your confirmation route (mobile: `/order-placed/{order_id}`):
 
 1. `GET /shop/api/orders/{order_id}/` on mount (force refresh).
 2. Display `number`, `status`, lines, totals, and `shipping_address`.
-3. Offer receipt download: `GET /shop/api/orders/{number}/receipt/?return_format=pdf` (redirects to PDF).
+3. Offer receipt download: `GET /shop/api/orders/{number}/receipt/?format=pdf&document=receipt`.
 
 **Client behavior:** show order confirmation; fetch receipt when available.
 
@@ -2806,7 +2809,7 @@ Not an API error — detect client-side when `basket.partner.id !== {PARTNER_ID}
 7. Checkout screen: `GET …/payment-methods/available/`; require login before submit unless you implement guest checkout ([§2.9](#29-login-gate-at-checkout-reference-app), [§8](#8-payment-methods)–[§9](#9-checkout)).
 8. `POST /shop/api/checkout/?partner={PARTNER_ID}` with full `shipping_address` (+ optional `user_address`) ([§9](#9-checkout)).
 9. If `order.payments.length > 0`: `GET /orders/{id}/` → `POST /payments/process/{reference}/` with `action: capture` ([§10](#10-complete-payment)).
-10. Poll order until payment succeeds; confirmation + `GET …/receipt/?return_format=pdf` ([§11](#11-order-management)).
+10. Poll order until payment succeeds; confirmation + `GET …/receipt/?format=pdf&document=receipt` ([§11](#11-order-management)).
 11. Digital products: [Appendix C](#appendix-c-digital-assets--frontend-integration).
 
 Use [Appendix D](#appendix-d-reference-implementation-map) to map each step to client modules and behaviors. Review [Appendix E](#appendix-e-production-considerations) before go-live.

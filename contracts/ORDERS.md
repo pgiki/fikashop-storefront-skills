@@ -24,20 +24,16 @@ Fixture: [order-detail.json](fixtures/order-detail.json)
 
 ## Receipt
 
+Get-or-creates the commercial invoice for the order (`uuid` `order-{number}`) and returns invoice JSON (items, nested `fiscal`, `can_edit`).
+
 ```http
 GET /shop/api/orders/{id-or-number}/receipt/
 ```
 
-JSON response:
-
-```json
-{ "receipt_url": "https://api.fikachu.com/invoices/api/order-100000901/" }
-```
-
-PDF/HTML redirect:
+Commercial PDF:
 
 ```http
-GET /shop/api/orders/100000901/receipt/?return_format=pdf
+GET /shop/api/orders/100000901/receipt/?format=pdf&document=receipt
 ```
 
 Legacy `/orders/{id}/invoice/` redirects to `/receipt/`.
@@ -48,7 +44,7 @@ Fixture: [order-receipt.json](fixtures/order-receipt.json)
 
 1. `GET /shop/api/orders/{order_id}/` on mount.
 2. Show `number`, `status`, lines, totals, `shipping_address`.
-3. Receipt: `GET …/receipt/?return_format=pdf`.
+3. Receipt: `GET …/receipt/?format=pdf&document=receipt`.
 4. If any `lines[].product.is_digital` and order is paid → [DIGITAL-ASSETS.md](DIGITAL-ASSETS.md).
 
 ## Resume incomplete payment

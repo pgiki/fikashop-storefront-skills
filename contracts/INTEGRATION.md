@@ -374,7 +374,7 @@ Or `GET /shop/api/orders/{order_id}/`. Poll every 2–5s for up to 2–3 min on 
 
 ## 7. Orders
 
-See [ORDERS.md](ORDERS.md) for list, detail, receipt (`?return_format=pdf`), confirmation screen, and resuming payment.
+See [ORDERS.md](ORDERS.md) for list, detail, receipt (`?format=pdf&document=receipt`), confirmation screen, and resuming payment.
 
 Requires Bearer; order owner or staff.
 

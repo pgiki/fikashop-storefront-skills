@@ -13,7 +13,7 @@ Integrator QA list before go-live. Detailed steps: [docs/storefront-integration.
 - [ ] Checkout: `GET …/payment-methods/available/`; login before submit (recommended)
 - [ ] `POST /shop/api/checkout/` with full `shipping_address` (+ optional `user_address`)
 - [ ] If `order.payments.length > 0`: `GET /orders/{id}/` → `POST /payments/process/{reference}/` with `action: capture`
-- [ ] Poll order until payment succeeds; confirmation + optional `GET …/receipt/?return_format=pdf`
+- [ ] Poll order until payment succeeds; confirmation + optional `GET …/receipt/?format=pdf&document=receipt`
 - [ ] Digital products: [DIGITAL-ASSETS.md](DIGITAL-ASSETS.md)
 - [ ] Review [PRODUCTION.md](PRODUCTION.md) (CORS, polling, captcha, secrets)
 - [ ] Map screens to reference client: [reference-client-map.md](../docs/reference-client-map.md)
