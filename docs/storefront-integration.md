@@ -1,5 +1,3 @@
-<!-- synced from fikashop-api/docs/storefront-integration.md @ aa40127e2104f0d9b9ef69f59c3684ea6c8e2dd8 — run scripts/sync-integration-doc.sh to refresh -->
-
 # Fikashop API — Third-Party Storefront Integration Guide
 
 This guide is for developers building **custom storefront websites** (web or mobile) that integrate with the Fikashop commerce API. It follows one customer journey end to end: browse a partner store, configure products, check out, pay, and view orders.
@@ -30,11 +28,11 @@ Read sections **in order** the first time. Use [Appendix A](#appendix-a-catalog-
 | Resource             | Location                                                                                                              |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | OpenAPI (schemas)    | `{API_BASE}/docs/`                                                                                                    |
-| Screen-to-API map    | [reference-client-map.md](reference-client-map.md) |
+| Screen-to-API map    | [`fikashop-storefront-skills/docs/reference-client-map.md`](../../fikashop-storefront-skills/docs/reference-client-map.md) |
 | Standalone invoicing | Out of scope for storefront checkout — coordinate with your FikaChu operator if you sell invoice-backed products      |
 
 
-**Client vs this guide:** A reference storefront client may send a product `url` on add-to-cart; the API accepts `id` or `url` (same product). Options may use option `url` in the client; the API accepts option **code**, numeric **id**, or URL segment. See [Appendix D](#appendix-d-reference-implementation-map) for screen-to-endpoint mapping.
+**Client vs this guide:** Options may use option **code** or numeric **id**. See [Appendix D](#appendix-d-reference-implementation-map) for screen-to-endpoint mapping.
 
 ### Customer lifecycle (single-partner storefront)
 
@@ -96,7 +94,7 @@ Enforce these before allowing checkout (reference app behavior):
 | Delivery address    | Local address + ISO-2 `country`                       | Redirect to address picker if missing                                                            |
 | Shipping quote      | Lat/lng on address                                    | Call `POST /basket/shipping-methods/` only when coordinates exist                                |
 | Login               | Reference app policy                                  | Redirect to OIDC before `POST /checkout/` (API may allow guest checkout — see [§9](#9-checkout)) |
-| Single-partner cart | `basket.partner.id`                                   | Must match `{PARTNER_ID}`; clear cart before switching stores                                    |
+| Per-partner Open basket | `basket.partner.id` + `X-Partner-Id` | One Open basket per partner; checkout uses the header’s basket. Do **not** clear other shops’ carts when switching |
 
 
 **Marketplace variant (optional):** A multi-store reference client lists stores via `GET /partners/` and lets users switch partners. For a **single branded storefront**, hard-code `{PARTNER_ID}` and skip partner discovery.
@@ -425,8 +423,9 @@ Use this table when wiring headers. “Bearer required” means a valid `Authori
 | Catalog, basket (browse, add, update)           | **Required** | Optional     | Anonymous browsing and cart OK                                                                       |
 | `GET /shop/api/start-session/`                  | `AUTH`       | **Required** | Merges anonymous basket into user                                                                    |
 | `GET /auth/api/user/`                           | Recommended  | **Required** | Profile for account UI (mobile uses this)                                                            |
-| Saved addresses, order list/detail              | `AUTH`       | **Required** | Object permissions on orders                                                                         |
-| `POST /shop/api/checkout/`                      | **Required** | Optional*    | *Guest checkout when `OSCAR_ALLOW_ANON_CHECKOUT` is enabled (see [§9](#9-checkout))                  |
+| Saved addresses, order **list**                 | `AUTH`       | **Required** | Object permissions on orders                                                                         |
+| `GET /shop/api/orders/{id}/` (guest)            | Placing session **or** `X-Order-Token` | Optional | Guest continuation after anonymous checkout (`guest_access_token`) |
+| `POST /shop/api/checkout/`                      | **Required** | Optional*    | *Guest checkout when the shop’s `storefront.allow_anonymous_checkout` is true (`OSCAR_ALLOW_ANON_CHECKOUT` is the process-wide master enable; see [§9](#9-checkout)) |
 | `POST {API_BASE}/payments/process/{reference}/` | Optional     | Often sent   | Endpoint allows unauthenticated POST; send Bearer and `X-Partner-Id` if your client already has them |
 
 
@@ -612,9 +611,9 @@ HTTP/1.1 405 Method Not Allowed
 
 ### 2.9 Login gate at checkout (reference app)
 
-The API may allow guest checkout when `OSCAR_ALLOW_ANON_CHECKOUT` is enabled ([§9](#9-checkout)). The **reference mobile app always requires login** before `POST /checkout/` because order history, receipts, and saved addresses need a Bearer token.
+Guest checkout is **per shop**. Read `storefront.allow_anonymous_checkout` on the selected/host/basket partner. When that flag is true, the reference mobile and landing apps call `POST /checkout/` without OIDC and continue payment/order-placed using `guest_access_token` plus the placing `Session-Id`. Wallet and digital downloads still require login.
 
-**Flow when the user is not authenticated at checkout submit:**
+When `storefront.allow_anonymous_checkout` is false (or the API returns 406 anonymous-not-allowed), keep the OIDC gate:
 
 1. User completes the checkout form (shipping method, payment method, contact fields).
 2. On submit, redirect to OIDC authorize (do **not** call `POST /checkout/` yet).
@@ -623,9 +622,7 @@ The API may allow guest checkout when `OSCAR_ALLOW_ANON_CHECKOUT` is enabled ([�
 5. Navigate back to `/checkout?is_preview=true&…` with fields prefilled.
 6. On authenticated submit, call `POST /shop/api/checkout/`.
 
-**Client behavior:** redirect to OIDC before checkout submit when the user is not logged in; on return, exchange code and call `start-session`.
-
-**Recommendation:** Require login at checkout even if your deployment allows guests — it simplifies order tracking and payment retries.
+**Client behavior:** if `storefront.allow_anonymous_checkout` is true, POST checkout as a guest; persist `guest_access_token` and send `X-Order-Token` on `GET /orders/{id}/` and payment-states. Otherwise redirect to OIDC before checkout submit.
 
 ---
 
@@ -1213,8 +1210,8 @@ Accept: application/json
 
 | Field             | Rules                                                                                                                                                      |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id` or `url`     | **One required**; must reference the same product. `id` may be numeric id, slug, or UPC. `url` may be a full product-detail URL (reference mobile client). |
-| `options`         | Optional. Each item: `option` = option **code**, numeric **id**, or option-detail URL segment; `value` = string stored on the line.                        |
+| `id`              | **Required**; numeric id, slug, or UPC.                                                                                                                                 |
+| `options`         | Optional. Each item: `option` = option **code** or numeric **id**; `value` = string stored on the line.                                                                  |
 | `modifier_groups` | Optional. Keys = modifier group **id**; values = arrays of `{ "id": <modifier_option_product_id>, "quantity": n }`.                                        |
 
 
@@ -1351,6 +1348,8 @@ curl -sS -X POST "${API_BASE}/shop/api/basket/add-product/" \
   }'
 ```
 
+**Client behavior:** POST `/basket/add-product/` with product `id` (numeric id, slug, or UPC) and selected options.
+
 **Failure** (out of stock or validation)
 
 Validation errors return `406` with either a string or object in `reason` (see [§12](#12-error-reference)).
@@ -1447,32 +1446,34 @@ Basket totals update; `voucher_discounts` lists applied discounts, e.g. `{ "name
 
 **Client behavior:** POST `/basket/add-voucher/` → on success `GET /basket/` and render `voucher_discounts` + discounted totals on cart/checkout.
 
-### 6.6 Add product (mobile / URL style)
+### 6.6 Per-partner Open baskets
 
-The reference app sends the product hypermedia URL instead of numeric `id`:
+#### Product direction
 
-```http
-POST /shop/api/basket/add-product/?partner=1 HTTP/1.1
-Host: api.fikashop.app
-X-Partner-Id: 1
-Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
-Content-Type: application/json
+FikaShop uses an **Instacart-style** multi-store cart model (not Amazon/Shopify unified multi-seller carts):
 
-{
-  "url": "https://api.fikashop.app/shop/api/products/42/",
-  "quantity": 1,
-  "options": [{ "option": "special-instructions", "value": "No onions" }],
-  "modifier_groups": {
-    "3": [{ "id": 18081, "quantity": 1 }]
-  }
-}
-```
+| Rule | Behavior |
+|------|----------|
+| Cart units | **One Open basket per partner** per shopper (anon session or user) |
+| Session | Same `Session-Id` across shops |
+| Scope | `X-Partner-Id` / `?partner=` selects which Open basket |
+| Checkout | One `POST /checkout/` → one order → **one partner**; other Open carts stay Open |
+| Switch shops | Do **not** clear other shops’ carts |
 
-**Client behavior:** POST `/basket/add-product/` with product id or url and selected options.
+**Client UX:** always label cart/checkout with the **current shop name**. Optional marketplace enhancement: “You have carts at N shops” (badge). Branded single-shop storefronts only need a fixed `{PARTNER_ID}`.
 
-### 6.7 Single-partner cart constraint
+See [ADR: Per-partner Open baskets](adr/per-partner-open-baskets.md) and [deploy runbook](per-partner-baskets-runbook.md).
 
-A basket is scoped to one partner (`basket.partner.id`). If the customer adds a product from a different `{PARTNER_ID}`, block the action and offer to clear the cart first. The reference app shows a confirmation dialog before clearing.
+#### API behavior
+
+`GET`/`POST` basket routes with `X-Partner-Id: {PARTNER_ID}` (or `?partner=`) always read/write that partner’s basket. **Partner scope is required** on basket and checkout when `SHOP_BASKET_REQUIRE_PARTNER` is enabled (production default) — missing scope → **400**.
+
+Marketplace clients should `GET /basket/` when the guest switches stores (keyed by partner).
+
+| Status | Meaning |
+|--------|---------|
+| **406** | Product not available / not stocked for the **current** partner (strategy) |
+| **409** | Basket is already scoped to partner A but the line’s stockrecord is partner B (`BasketPartnerMismatch`) — clear **that** partner’s basket only if recovering |
 
 When updating or deleting lines, append `?partner={PARTNER_ID}` to the line URL (mobile: `urlAddPartnerId`).
 
@@ -1802,15 +1803,13 @@ Send `X-Partner-Id: {PARTNER_ID}` on this request (and on [§8](#8-payment-metho
 
 Required concepts:
 
-- `basket` — open basket **id** (integer) or URL, e.g. `17` or `https://api.fikashop.app/shop/api/baskets/17/`
+- `basket` — open basket **id** (integer) from `GET /shop/api/basket/` or `basket_id` from `GET /shop/api/start-session/`
 - `shipping_address` — inline object (ISO-2 `country`, e.g. `"TZ"`); **omit when `user_address` is set** and the saved row is complete ([§7.6](#76-user_address-at-checkout))
 - `user_address` — optional saved address id; when set without `shipping_address`, the API fills shipping from the address book
 - `shipping_method_code` — from [§7.3](#73-shipping-methods-for-basket); use `no-shipping-required` when appropriate
 - `payment` — one enabled method; use `method_type` as the object key, `variant` = payment method `code`, `input_fields` from [§8](#8-payment-methods)
 
 `pay_balance` defaults to `true` when omitted.
-
-Prefer `basket.id` from `GET /shop/api/basket/` or `basket_id` from `GET /shop/api/start-session/` — you do not need to build a hypermedia URL for checkout.
 
 Country in addresses: **ISO-2** string (`"TZ"`), not `/shop/api/countries/.../` URLs.
 
@@ -1838,7 +1837,7 @@ Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "user_address": 5,
   "shipping_method_code": "standard",
   "shipping_address": {
@@ -1888,15 +1887,26 @@ On `406` or failed checkout, surface errors in this order (reference app):
 
 ### Checkout idempotency and double-submit
 
-Shop checkout does **not** accept an `Idempotency-Key` header (unlike some subscription endpoints). In production:
+Send `Idempotency-Key` on `POST /checkout/` for both authenticated and guest checkouts (reference apps always attach one). Treat checkout as **at-most-once**:
 
-- Disable the place-order button while `POST /checkout/` is in flight.
-- Do not auto-retry checkout on network timeout without checking whether an order was created (`GET /shop/api/orders/` or store the returned order id on success).
-- A duplicate submit with the same open basket may update or conflict depending on basket state — treat checkout as **at-most-once** from the client.
+- Disable the place-order button while `POST /checkout/` is in flight (reference apps set `pendingRequests.submitCheckout`).
+- Do not auto-retry checkout on network timeout without checking whether an order was created (`GET /shop/api/orders/{id}/` with `X-Order-Token`, or store the returned order id on success).
+- A duplicate submit with the same open basket may update or conflict depending on basket state.
 
 ### Guest checkout
 
-When your deployment has `OSCAR_ALLOW_ANON_CHECKOUT` enabled, users may checkout with only `Session-Id: SID:ANON:…` (no Bearer). Oscar may require `guest_email` for anonymous users; if omitted and `CHECKOUT_ALLOW_EMPTY_GUEST_EMAIL` is true, the API may use an internal placeholder for validation and store a blank email on the order.
+Guest checkout is enabled **per shop** via `storefront.allow_anonymous_checkout` (Django `OSCAR_ALLOW_ANON_CHECKOUT` remains the process-wide Oscar master enable). Clients read the flag from the partner payload. Wallet is hidden for anonymous users; digital-asset grants still require `order.user`.
+
+When `allow_empty_guest_email` is true and `guest_email` is omitted, the API stores the shop’s `anonymous_guest_email_placeholder` (default `guest@example.com`) so Oscar treats the order as anonymous. Confirmation mail is **not** sent to that placeholder address.
+
+**200 checkout body** includes `guest_access_token` (signed order token) for anonymous orders. Persist it and send `X-Order-Token` (or `?token=`) on:
+
+- `GET /shop/api/orders/{id}/`
+- `GET /shop/api/checkout/{id}/payment-states/`
+- `GET /shop/api/orders/{id}/receipt/`
+- `POST /shop/api/checkout/complete-deferred-payment/` (`order` token field, or `order_id` plus the placing `Session-Id`)
+
+The placing `Session-Id` is also accepted while it still maps to `order.basket_id`. Unrelated sessions get 404. Order **list**, cancel, and wallet stay login-gated. Guest confirmation is the in-session order-placed screen.
 
 **Request** (guest, cash)
 
@@ -1908,7 +1918,7 @@ Session-Id: SID:ANON:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "guest_email": "guest@example.com",
   "shipping_method_code": "pick-up",
   "shipping_address": {
@@ -1965,7 +1975,7 @@ Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "shipping_method_code": "standard",
   "shipping_address": {
     "first_name": "Asha",
@@ -2080,7 +2090,7 @@ Session-Id: SID:AUTH:api.fikashop.app:550e8400-e29b-41d4-a716-446655440000
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "shipping_method_code": "standard",
   "shipping_address": {
     "first_name": "Asha",
@@ -2143,7 +2153,7 @@ Authorization: Bearer {ACCESS_TOKEN}
 Content-Type: application/json
 
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "shipping_method_code": "pick-up",
   "shipping_address": {
     "first_name": "Asha",
@@ -2760,7 +2770,7 @@ HTTP/1.1 404 Not Found
 
 ```json
 {
-  "basket": "https://api.fikashop.app/shop/api/baskets/17/",
+  "basket": 17,
   "payment": {
     "cash": { "enabled": false }
   }
@@ -2792,9 +2802,12 @@ Returned when the authenticated user is not the order owner and lacks `view_orde
 
 If `GET /shop/api/start-session/` or basket calls fail with a message containing `realm`, clear stored tokens and `Session-Id`, generate a new anon session, and send the user through login again. Reference app logs out automatically.
 
-### Single-partner cart conflict
+### Partner / basket mismatch (409) vs unavailable (406)
 
-Not an API error — detect client-side when `basket.partner.id !== {PARTNER_ID}`. Prompt to clear the cart before adding items from your store.
+- **406** — product has no buyable stockrecord for the current `X-Partner-Id` (wrong shop / out of stock at this partner).
+- **409** — Open basket is already stamped to one partner and the add would mix another partner’s stockrecord. Clear **that** partner’s basket (or switch `X-Partner-Id`) and retry — do not wipe other shops’ carts.
+
+Checkout with a basket id that is not the active partner-scoped basket fails validation (**406** from the checkout serializer queryset), not a silent mix.
 
 ---
 
@@ -3211,7 +3224,7 @@ Partner staff using an admin app should use the **same** `GET /shop/api/orders/{
 
 ## Appendix D: Reference implementation map
 
-Screen-to-endpoint mapping and client module responsibilities: [reference-client-map.md](reference-client-map.md)
+Screen-to-endpoint mapping and client module responsibilities: [`reference-client-map.md`](../../fikashop-storefront-skills/docs/reference-client-map.md)
 
 That document lists journey phases, per-section behaviors (session merge, basket cache, payment polling), and links to TypeScript/curl examples.
 
@@ -3224,7 +3237,7 @@ That document lists journey phases, per-section behaviors (session merge, basket
 | **CORS** | Default deployment allows all origins (`CORS_ALLOW_ALL_ORIGINS`). Confirm allowed origins with your FikaChu operator before production; browser storefronts need the API host to accept your site origin. |
 | **Rate limits** | Shop catalog/basket/checkout endpoints have **no** application-level throttling by default. Digital asset download refresh is throttled (~30/min per user). Do not hammer list endpoints — use pagination. |
 | **Session-Id** | **Required** for any flow with a cart ([Conventions](#conventions)). Persist locally; never rotate UUID on login. |
-| **Checkout retries** | No idempotency key — disable double-submit ([Checkout idempotency](#checkout-idempotency-and-double-submit)). |
+| **Checkout retries** | Client disable + optional `Idempotency-Key` for authenticated shoppers ([Checkout idempotency](#checkout-idempotency-and-double-submit)). |
 | **Payment polling** | Prefer `GET …/checkout/payment-states/{id}/` ([§10.6](#106-payment-states-polling)); fall back to `GET /orders/{id}/`. Poll 2–5s for async gateways; mobile uses a single refresh. |
 | **Webhooks** | `POST /payments/webhook/{variant}/` is server-side only. Storefronts poll order/payment state; do not expect client webhooks. |
 | **reCAPTCHA / fraud** | Some deployments enable `API_CHECKOUT_CAPTCHA` or fraud checks on `POST /checkout/`. When enabled, checkout requires a `recaptcha` field — confirm with your operator and `{API_BASE}/docs/`. |

@@ -2,7 +2,7 @@
  * Guest checkout when OSCAR_ALLOW_ANON_CHECKOUT is enabled.
  * POST /shop/api/checkout/ with SID:ANON session only.
  */
-import { PARTNER_ID, shopApi, toBasketCheckoutValue } from './client-setup';
+import { PARTNER_ID, shopApi } from './client-setup';
 
 async function guestCheckout(
   sessionId: string,
@@ -10,7 +10,7 @@ async function guestCheckout(
   shippingAddress: Record<string, unknown>,
 ) {
   const body = {
-    basket: toBasketCheckoutValue(basketId),
+    basket: basketId,
     guest_email: 'guest@example.com',
     shipping_method_code: 'pick-up',
     shipping_address: shippingAddress,

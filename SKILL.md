@@ -79,7 +79,7 @@ sequenceDiagram
 | Promo code | `POST /basket/add-voucher/` (optional) | [INTEGRATION.md](contracts/INTEGRATION.md#voucher-promo-code) |
 | Address | Local geocode; `POST /basket/shipping-methods/` | [INTEGRATION.md §4](contracts/INTEGRATION.md#4-shipping) |
 | Login | OIDC PKCE → `GET /shop/api/start-session/` | [INTEGRATION.md §1](contracts/INTEGRATION.md#1-bootstrap) |
-| Checkout | `GET …/payment-methods/available/`, `POST /checkout/` (basket **id or URL**) | [INTEGRATION.md §5](contracts/INTEGRATION.md#5-checkout) |
+| Checkout | `GET …/payment-methods/available/`, `POST /checkout/` (basket **id**) | [INTEGRATION.md §5](contracts/INTEGRATION.md#5-checkout) |
 | Pay | `GET /orders/{id}/`, `POST /payments/process/{reference}/` | [INTEGRATION.md §6](contracts/INTEGRATION.md#6-payment-capture) |
 | Done | `GET /orders/{id}/`, `GET …/receipt/` | [ORDERS.md](contracts/ORDERS.md) |
 | Digital | `GET …/digital-assets/`, `GET …/orders/{id}/assets/` | [DIGITAL-ASSETS.md](contracts/DIGITAL-ASSETS.md) |
@@ -125,7 +125,7 @@ Status sets: [contracts/status-map.json](contracts/status-map.json).
 - Checkout has **no idempotency key** — disable double-submit.
 - **`complete-deferred-payment`** is **staff-only** — cash often returns `payments: []`.
 - Country: **ISO-2** (`"TZ"`). `location.coordinates`: **`[longitude, latitude]`**.
-- Single-partner cart — clear before switching `{PARTNER_ID}`.
+- Per-partner Open baskets — one cart per `{PARTNER_ID}`; checkout uses `X-Partner-Id` (do not clear other shops when switching).
 
 ## Local dev
 

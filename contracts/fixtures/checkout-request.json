@@ -1,5 +1,5 @@
 {
-  "basket": "https://api.fikachu.com/shop/api/baskets/17/",
+  "basket": 17,
   "user_address": 5,
   "shipping_method_code": "standard",
   "shipping_address": {

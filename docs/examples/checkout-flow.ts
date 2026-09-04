@@ -2,7 +2,7 @@
  * Checkout screen load + place order.
  * GET payment-methods → POST shipping-methods → GET basket (recalc) → POST checkout
  */
-import { PARTNER_ID, shopApi, toBasketCheckoutValue, type TokenStore } from './client-setup';
+import { PARTNER_ID, shopApi, type TokenStore } from './client-setup';
 
 type ShippingAddress = {
   country: string;
@@ -86,7 +86,7 @@ function parseCheckoutErrors(body: {
 
 async function placeOrder(input: CheckoutInput) {
   const body: Record<string, unknown> = {
-    basket: toBasketCheckoutValue(input.basketId),
+    basket: input.basketId,
     shipping_method_code: input.shippingMethodCode,
     shipping_address: input.shippingAddress,
     payment: {

@@ -12,7 +12,7 @@ Example JSON payloads for agent tests and codegen. Source: [docs/storefront-inte
 | [shipping-methods-request.json](shipping-methods-request.json) | `POST /basket/shipping-methods/` body |
 | [shipping-methods-response.json](shipping-methods-response.json) | `POST /basket/shipping-methods/` response |
 | [payment-methods-available.json](payment-methods-available.json) | `GET …/payment-methods/available/` |
-| [checkout-request.json](checkout-request.json) | `POST /checkout/` M-Pesa delivery (basket URL) |
+| [checkout-request.json](checkout-request.json) | `POST /checkout/` M-Pesa delivery |
 | [checkout-request-by-id.json](checkout-request-by-id.json) | `POST /checkout/` M-Pesa delivery — basket id + `user_address` only (no inline `shipping_address`) |
 | [guest-checkout-request.json](guest-checkout-request.json) | `POST /checkout/` guest cash pickup |
 | [checkout-order-mpesa.json](checkout-order-mpesa.json) | `POST /checkout/` response (pending payment) |

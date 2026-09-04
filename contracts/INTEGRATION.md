@@ -79,13 +79,13 @@ Response: `{ "user": { … }, "basket_id": 17 }`. Returns `405` if not logged in
 
 ### Login gate at checkout (reference app)
 
-Mobile **always** requires login before `POST /checkout/`:
+Guest checkout is **per shop** (`storefront.allow_anonymous_checkout`). When true, mobile and landing POST `/checkout/` without OIDC, persist `guest_access_token`, and send `X-Order-Token` on order/payment-states refetch. Wallet and digital downloads still require login.
+
+When the flag is false:
 
 1. On submit while logged out → redirect to OIDC (do not checkout yet).
 2. Preserve form in return URL (`is_preview=true&full_name=…`).
 3. After token exchange → `start-session` → return to checkout → submit.
-
-API may allow guest checkout when `OSCAR_ALLOW_ANON_CHECKOUT` is enabled; still recommend login for order history.
 
 ---
 
@@ -162,8 +162,8 @@ POST /shop/api/basket/add-product/
 
 | Field | Rules |
 |-------|-------|
-| `id` or `url` | One required; `id` = numeric id, slug, or UPC; `url` = product detail URL |
-| `options` | `option` = code, id, or URL segment; `value` = string |
+| `id` | Required; numeric id, slug, or UPC |
+| `options` | `option` = code or numeric id; `value` = string |
 | `modifier_groups` | Keys = group id; values = `{ id, quantity }[]` |
 
 ### Update / remove line
@@ -199,9 +199,9 @@ Creating voucher codes is staff-only (`/shop/api/admin/vouchers/`) — [OUT-OF-S
 
 Example: [docs/examples/curl/add-voucher.sh](../docs/examples/curl/add-voucher.sh).
 
-### Single-partner constraint
+### Per-partner Open baskets
 
-Basket is scoped to one `partner.id`. Block add from different partner; offer clear-cart first.
+One Open basket per partner per shopper. `X-Partner-Id` / `?partner=` selects which basket to read/write. Checkout submits only that partner’s basket. Mixing partners in one basket returns **409** — clear **that** partner’s cart only.
 
 ---
 
@@ -253,7 +253,7 @@ Same as quote; include `first_name`, `last_name`, `notes`. Optional `user_addres
 | `user_address` + `shipping_address` | Same link, but checkout form overrides specific fields (notes, refreshed coordinates) |
 | `shipping_address` only | Guest checkout or new address without saving |
 
-Fixture: [checkout-request-by-id.json](fixtures/checkout-request-by-id.json) (`user_address` only). [checkout-request.json](fixtures/checkout-request.json) shows URL basket + inline address with overrides.
+Fixture: [checkout-request-by-id.json](fixtures/checkout-request-by-id.json) (`user_address` only). [checkout-request.json](fixtures/checkout-request.json) shows inline address with overrides.
 
 ---
 
@@ -270,7 +270,7 @@ Fixture: [checkout-request-by-id.json](fixtures/checkout-request-by-id.json) (`u
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `basket` | Yes | Basket id (integer) or URL, e.g. `17` or `https://api.fikachu.com/shop/api/baskets/17/` — prefer `id` from `GET /basket/` or `basket_id` from `start-session` |
+| `basket` | Yes | Basket id (integer) from `GET /basket/` or `basket_id` from `start-session` |
 | `shipping_method_code` | Yes | From shipping-methods; `no-shipping-required` when applicable |
 | `shipping_address` | Usually | ISO-2 country, `location` for delivery; **omit when `user_address` is set** and the saved row is complete |
 | `payment` | Yes | See below |

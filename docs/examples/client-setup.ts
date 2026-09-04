@@ -91,22 +91,11 @@ async function startSession(sessionId: string, tokens: TokenStore) {
   return res.json() as Promise<{ user: Record<string, unknown>; basket_id: number }>;
 }
 
-/** Checkout accepts basket id directly; line PATCH/DELETE still use hypermedia URLs. */
-function toBasketCheckoutValue(basketId: number | string) {
-  return basketId;
-}
-
-function toBasketUrl(apiBase: string, basketId: number) {
-  return `${apiBase.replace(/\/$/, '')}/shop/api/baskets/${basketId}/`;
-}
-
 export {
   API_BASE,
   PARTNER_ID,
   loadOrCreateSessionId,
   shopApi,
   startSession,
-  toBasketCheckoutValue,
-  toBasketUrl,
   type TokenStore,
 };

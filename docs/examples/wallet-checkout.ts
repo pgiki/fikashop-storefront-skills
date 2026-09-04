@@ -2,7 +2,7 @@
  * Wallet checkout — pay from FikaChu wallet balance at place order.
  * Requires authenticated user with sufficient wallet balance.
  */
-import { PARTNER_ID, shopApi, toBasketCheckoutValue, type TokenStore } from './client-setup';
+import { PARTNER_ID, shopApi, type TokenStore } from './client-setup';
 import type { ShippingAddress } from './checkout-flow';
 
 async function walletCheckout(
@@ -13,7 +13,7 @@ async function walletCheckout(
   shippingAddress: ShippingAddress,
 ) {
   const body = {
-    basket: toBasketCheckoutValue(basketId),
+    basket: basketId,
     shipping_method_code: shippingMethodCode,
     shipping_address: shippingAddress,
     payment: {

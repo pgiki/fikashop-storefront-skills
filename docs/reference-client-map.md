@@ -25,7 +25,7 @@ Screen-to-API map for a typical storefront client (web or mobile). Use this with
 | [§2 Auth](storefront-integration.md#2-authentication) | Login / authorize | `AuthStore`, `AuthorizeScreen` | PKCE code exchange; keep same session UUID; `GET /shop/api/start-session/`; flip `ANON`→`AUTH` | OIDC token, `GET /shop/api/start-session/` | [oidc-pkce-flow.md](examples/oidc-pkce-flow.md) |
 | [§2.9 Login gate](storefront-integration.md#29-login-gate-at-checkout-reference-app) | `/checkout` | `CheckoutScreen` | Redirect to OIDC before submit if not logged in; preserve checkout preview state | OIDC redirect with `is_preview` params | [checkout-flow.ts](examples/checkout-flow.ts) |
 | [§3 Partner home](storefront-integration.md#3-partner-store-homepage) | Partner menu | `PartnerHomeScreen` | Check `partner.is_open`, `min_order_amount` | `GET /partners/{id}/categories/` | [CATALOG.md](../contracts/CATALOG.md) |
-| [§4 Catalog](storefront-integration.md#4-browsing-the-menu) | Menu, product page | `CatalogStore`, `ProductDetailScreen` | Optional `is_public=true` and `?partner=` on product lists; product `id` or `url` on add-to-cart | `GET /products/`, `GET /products/{id}/` | [product-detail-modifiers.json](../contracts/fixtures/product-detail-modifiers.json) |
+| [§4 Catalog](storefront-integration.md#4-browsing-the-menu) | Menu, product page | `CatalogStore`, `ProductDetailScreen` | Optional `is_public=true` and `?partner=` on product lists; product `id` on add-to-cart | `GET /products/`, `GET /products/{id}/` | [product-detail-modifiers.json](../contracts/fixtures/product-detail-modifiers.json) |
 | [§4.4 Product groups](storefront-integration.md#44-product-groups-ranges) | Collections / shelves | Optional | Public ranges only; partner scope required | `GET /ranges/`, `GET /products/?range=` | [CATALOG.md](../contracts/CATALOG.md#product-groups-ranges), [list-ranges.sh](examples/curl/list-ranges.sh) |
 | [§5–6 Cart](storefront-integration.md#6-cart-management) | `/cart` | `BasketStore`, `CartScreen` | Cache basket GET ~20s unless `force` after mutation; line PATCH/DELETE use hypermedia URLs; optional promo via add-voucher then refresh basket | `GET /basket/`, `POST …/add-product/`, `POST …/add-voucher/`, line PATCH/DELETE | [add-to-cart.ts](examples/add-to-cart.ts), [add-voucher.sh](examples/curl/add-voucher.sh) |
 | [§7 Address](storefront-integration.md#7-shipping-address--methods) | Address picker | `AddressStore`, `AddressScreen` | Geocode to `[lng, lat]`; ISO-2 country; `POST …/shipping-methods/` when coords exist | `POST …/shipping-methods/`, `GET/POST /user-addresses/` | [INTEGRATION.md §4](../contracts/INTEGRATION.md#4-shipping) |
@@ -57,7 +57,7 @@ See [oidc-pkce-flow.md](examples/oidc-pkce-flow.md) and [AUTH-SCREENS.md](../con
 ### BasketStore
 
 - `fetchBasket`: GET `/basket/`; cache ~20 seconds unless `{ force: true }` after add/update/remove.
-- `addToBasket`: POST `/basket/add-product/` with product `id` or `url`; option values as **code**, numeric **id**, or URL segment.
+- `addToBasket`: POST `/basket/add-product/` with product `id` (numeric id, slug, or UPC); option values as **code** or numeric **id**.
 - `updateBasketLine` / `removeFromBasket`: PATCH/DELETE line hypermedia URLs from basket response.
 
 See [add-to-cart.ts](examples/add-to-cart.ts).
