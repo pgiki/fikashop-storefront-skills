@@ -5,7 +5,8 @@
     "method_type": "cash",
     "description": "Pay when your order arrives",
     "image_url": null,
-    "input_fields": []
+    "input_fields": [],
+    "countries": []
   },
   {
     "code": "mpesa",
@@ -23,7 +24,8 @@
         "default_value": null,
         "schema": {}
       }
-    ]
+    ],
+    "countries": ["TZ"]
   },
   {
     "code": "wallet",
@@ -31,6 +33,7 @@
     "method_type": "wallet",
     "description": "Pay from your wallet balance",
     "image_url": null,
-    "input_fields": []
+    "input_fields": [],
+    "countries": []
   }
 ]

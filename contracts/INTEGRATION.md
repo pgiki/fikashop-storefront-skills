@@ -261,7 +261,7 @@ Fixture: [checkout-request-by-id.json](fixtures/checkout-request-by-id.json) (`u
 
 ### Load sequence (checkout screen)
 
-1. `GET /shop/api/checkout/payment-methods/available/?partner={PARTNER_ID}`
+1. `GET /shop/api/checkout/payment-methods/available/?partner={PARTNER_ID}&country={ISO_CODE}` (`country` optional — filters to methods available in the shopper's country)
 2. `POST /shop/api/basket/shipping-methods/` with formatted address
 3. User selects shipping + payment → `GET /basket/?payment_method_code=…&shipping_method_code=…`
 4. `POST /shop/api/checkout/?partner={PARTNER_ID}`

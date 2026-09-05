@@ -5,8 +5,10 @@ Build checkout and post-checkout capture forms from each payment method's `input
 ## Load methods
 
 ```http
-GET /shop/api/checkout/payment-methods/available/?partner={PARTNER_ID}
+GET /shop/api/checkout/payment-methods/available/?partner={PARTNER_ID}&country={ISO_CODE}
 ```
+
+`country` is an optional ISO 3166-1 alpha-2 code (e.g. `TZ`) — only methods available in that country are returned. Each method carries `countries[]`; an empty array means worldwide. Send the shipping/billing address country.
 
 Fixture: [payment-methods-available.json](fixtures/payment-methods-available.json)
 

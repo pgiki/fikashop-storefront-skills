@@ -20,7 +20,7 @@ Payment capture: `{API_BASE}/payments/` — **not** under `shop/api`.
 | POST | `/basket/shipping-methods/` | Opt | Quote shipping |
 | GET | `/user-addresses/` | **Req** | List saved addresses |
 | POST | `/user-addresses/` | **Req** | Create address |
-| GET | `/checkout/payment-methods/available/` | Opt | Methods for basket; `?partner=` |
+| GET | `/checkout/payment-methods/available/` | Opt | Methods for basket; `?partner=`, `?country=` (ISO alpha-2 filter) |
 | POST | `/checkout/` | Opt* | Place order |
 | GET | `/checkout/payment-states/{order_id}/` | **Req** | Lightweight payment poll |
 | GET | `/orders/` | **Req** | Order history |

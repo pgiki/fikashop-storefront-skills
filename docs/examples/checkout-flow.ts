@@ -28,9 +28,16 @@ type CheckoutInput = {
   userAddressId?: number;
 };
 
-async function getPaymentMethods(sessionId: string, tokens?: TokenStore) {
+async function getPaymentMethods(
+  sessionId: string,
+  tokens?: TokenStore,
+  country?: string,
+) {
+  const params = new URLSearchParams({ partner: PARTNER_ID });
+  // Only list methods available in the shopper's country (ISO alpha-2).
+  if (country?.trim()) params.set('country', country.trim().toUpperCase());
   const res = await shopApi(
-    `/checkout/payment-methods/available/?partner=${PARTNER_ID}`,
+    `/checkout/payment-methods/available/?${params.toString()}`,
     { sessionId, tokens },
   );
   if (!res.ok) throw new Error(`payment-methods failed: ${res.status}`);
