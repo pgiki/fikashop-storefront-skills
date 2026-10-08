@@ -64,6 +64,10 @@ Always send `X-Currency` (shopper's currency, e.g. `USD`; omit for base `TZS` am
 
 Rules: render `display_*`; keep base `price`/`total` + `*_currency` for money logic (charged/settled amounts); never sum display lines into a total — use the converted total. Unknown/unrated codes return `400` with `supported_currencies` — retry without the header or offer the list. Example: [display-price.ts](../docs/examples/display-price.ts).
 
+Wire-shape notes (both have crashed strict clients before):
+- `exchange_rate` is serialized as a **string** (`"1"`, `"0.000338"`), never a JSON number — accept `number | string` and coerce with `Number(...)`.
+- Basket/order line `attributes[].value` is **JSON, not always a string**: classic options are strings, but machine attributes like the domain `domain_quote` arrive as objects. Never type it `string`-only; render via a `formatAttributeValue(value: unknown)` that drops unrenderable objects instead of printing `[object Object]`.
+
 ### Bootstrap sequence
 
 1. Load/create `Session-Id` (ANON).
