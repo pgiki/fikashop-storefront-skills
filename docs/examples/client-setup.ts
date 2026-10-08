@@ -7,6 +7,8 @@
  */
 const API_BASE = process.env.API_BASE ?? 'https://api.fikashop.app';
 const PARTNER_ID = process.env.PARTNER_ID ?? '1';
+/** Shopper display currency (recommended default on every shop call). */
+const CURRENCY = process.env.CURRENCY ?? 'TZS';
 const OIDC_ISS = process.env.OIDC_ISS ?? 'https://oidc.fikachu.com';
 const SESSION_STORAGE_KEY = 'fikashop_session_id';
 
@@ -64,6 +66,9 @@ async function shopApi(
 ): Promise<Response> {
   const headers = new Headers(options.headers);
   headers.set('X-Partner-Id', PARTNER_ID);
+  // Recommended default: shopper display currency (responses add converted
+  // `display_*` fields; base fields stay the chargeable truth).
+  headers.set('X-Currency', CURRENCY);
   headers.set('Session-Id', options.sessionId);
   headers.set('Accept', 'application/json');
   const access = options.tokens?.getAccessToken();

@@ -16,7 +16,10 @@
       "stockrecord": {
         "id": 101,
         "price": "12000.00"
-      }
+      },
+      "display_currency": "USD",
+      "exchange_rate": "0.0004",
+      "display_price_incl_tax": "5.40"
     }
   ],
   "url": "https://api.fikachu.com/shop/api/baskets/17/",
@@ -31,5 +34,8 @@
     "code": "demo-kitchen"
   },
   "voucher_discounts": [],
-  "offer_discounts": []
+  "offer_discounts": [],
+  "display_currency": "USD",
+  "exchange_rate": "0.0004",
+  "display_total_incl_tax": "6.20"
 }

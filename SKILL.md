@@ -33,6 +33,7 @@ Build a **single-partner** storefront against **fikashop-api**: browse menu → 
 | Header | Rule |
 |--------|------|
 | `X-Partner-Id` | **Required** on every `/shop/api/` call (`{PARTNER_ID}` = numeric id or partner `code`) |
+| `X-Currency` | **Recommended default** on every `/shop/api/`, invoice, and domain-pricing call (`{CURRENCY}` = e.g. `USD`); responses add converted `display_*` fields, base fields stay chargeable truth |
 | `Session-Id` | **Required** for cart/checkout — `SID:{ANON\|AUTH}:{api_hostname}:{uuid}`; persist UUID; flip `ANON`→`AUTH` on login |
 | `Authorization: Bearer` | Required for orders, addresses, `start-session`; optional for catalog/cart per deployment |
 | `Content-Type` / `Accept` | `application/json` on JSON bodies |

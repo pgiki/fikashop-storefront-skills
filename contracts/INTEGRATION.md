@@ -24,6 +24,7 @@ flowchart LR
 | `OIDC_CLIENT_ID` | `your-client-id` | OAuth2 public client (PKCE) |
 | `OIDC_REDIRECT_URI` | `https://your-store.com/auth` | Must match IdP registration |
 | `PARTNER_ID` | `1` or `demo-kitchen` | `X-Partner-Id` on every shop call |
+| `CURRENCY` | `USD` (or `TZS`) | `X-Currency` display currency on every shop/invoice/domain-pricing call (recommended default) |
 
 ### Session-Id
 
@@ -42,12 +43,26 @@ Every shop request:
 
 ```
 X-Partner-Id: {PARTNER_ID}
+X-Currency: {CURRENCY}
 Session-Id: {SESSION_ID}
 Accept: application/json
 Authorization: Bearer {ACCESS_TOKEN}   # when authenticated
 ```
 
 Optional `?partner={PARTNER_ID}` on basket, add-product, checkout, payment-methods (mirrors reference client behavior).
+
+### Multi-currency display (recommended default)
+
+Always send `X-Currency` (shopper's currency, e.g. `USD`; omit for base `TZS` amounts). Responses add converted fields next to unchanged base fields. Naming mirrors base fields: every converted amount is `display_<base_field>` with one shared `display_currency` + `exchange_rate` per object:
+
+- Stockrecords: `display_price` (+ `display_currency`, `exchange_rate`).
+- Basket: `display_total_incl_tax`; basket/order lines: `display_price_incl_tax`.
+- Orders: `display_total_incl_tax` (locked quote frozen at checkout — later rate changes never rewrite receipts).
+- Gateway payments: `display_total`, `display_captured_amount`.
+- Invoices: `display_total`, `display_balance`.
+- Domain `search` / `suggestions` / `pricing`: `price: {display_amount, display_currency}` (+ `price_breakdown.exchange_rate`).
+
+Rules: render `display_*`; keep base `price`/`total` + `*_currency` for money logic (charged/settled amounts); never sum display lines into a total — use the converted total. Unknown/unrated codes return `400` with `supported_currencies` — retry without the header or offer the list. Example: [display-price.ts](../docs/examples/display-price.ts).
 
 ### Bootstrap sequence
 
