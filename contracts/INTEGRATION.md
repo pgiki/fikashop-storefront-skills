@@ -258,7 +258,24 @@ Body: draft `shipping_address` with optional GeoJSON `location`:
 
 **Coordinates are `[longitude, latitude]`.** Call only when lat/lng exist.
 
-Response: array of `{ code, name, price, … }` — use `code` as `shipping_method_code` at checkout.
+Response: array of shipping-method quotes — use `code` as `shipping_method_code` at checkout. Fixture: [shipping-methods-response.json](fixtures/shipping-methods-response.json).
+
+### Fulfilment warehouse & overflow warnings
+
+Partners with several warehouses return per-method fulfilment context. All fields are optional — absent on legacy single-address quotes, so treat them as nullable:
+
+| Field | Shape | Client behavior |
+|-------|-------|-----------------|
+| `fulfilment_address` | `{ id, line1, city, location{Point}, distance_km, is_default }` | Warehouse fulfilling the order. Show on courier methods ("Ships from …"). |
+| `pickup_address` | Same block (only on `SelfPickup`) | Show instead of a generic "store pickup" label, e.g. `"Near WH · 1.2 km"`. `distance_km` is warehouse→customer. |
+| `fulfilment_warning` | Human string or `null` | **Warn-only — checkout proceeds.** Render under the selected method when present. |
+| `fulfilment_warning_detail` | `{ code: "overflow", message, chosen_address_id, short_stockrecord_ids }` or `null` | Prefer `message` over `fulfilment_warning` when present; use `code` for branching, never for display copy. |
+
+Rules:
+
+- One order ships from **one warehouse** (no split shipments). When no single warehouse holds the whole basket, the API overflows the whole order to the next-closest warehouse with stock and sets the warning — do **not** block checkout on it.
+- The warehouse is chosen at **quote time** and frozen at placement; the persisted origin drives courier pickup and invoices. Re-quote if the basket changes.
+- `DineIn` stays pinned to the primary address; `SelfPickup` exposes the chosen warehouse via `pickup_address`.
 
 ### Checkout address shape
 

@@ -17,7 +17,7 @@ Payment capture: `{API_BASE}/payments/` — **not** under `shop/api`.
 | PATCH | `/baskets/{id}/lines/{line_id}/` | Opt | Update quantity |
 | DELETE | `/baskets/{id}/lines/{line_id}/` | Opt | Remove line |
 | POST | `/basket/add-voucher/` | Opt | Apply promo code (`vouchercode`); then `GET /basket/` for discounts |
-| POST | `/basket/shipping-methods/` | Opt | Quote shipping |
+| POST | `/basket/shipping-methods/` | Opt | Quote shipping (methods carry `fulfilment_address` / `pickup_address` / `fulfilment_warning_detail` — see INTEGRATION.md §4) |
 | GET | `/user-addresses/` | **Req** | List saved addresses |
 | POST | `/user-addresses/` | **Req** | Create address |
 | GET | `/checkout/payment-methods/available/` | Opt | Methods for basket; `?partner=`, `?country=` (ISO alpha-2 filter) |

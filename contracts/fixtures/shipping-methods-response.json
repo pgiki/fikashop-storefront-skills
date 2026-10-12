@@ -1,24 +1,72 @@
 [
   {
-    "code": "standard",
-    "name": "Standard delivery",
-    "description": "Delivered within 45 minutes",
+    "code": "FikaChu|economy|cash",
+    "name": "FikaChu delivery",
+    "description": "Fast and sustainable deliveries using ZEV",
     "price": {
       "currency": "TZS",
       "excl_tax": "2000.00",
       "incl_tax": "2000.00"
     },
-    "is_discounted": false
+    "is_discounted": false,
+    "kind": "courier",
+    "expires_at": 1781299200.0,
+    "display_currency": "TZS",
+    "display_price_incl_tax": 2000.0,
+    "exchange_rate": null,
+    "fulfilment_address": {
+      "id": 7,
+      "line1": "Near WH",
+      "city": "Dar es Salaam",
+      "location": {
+        "type": "Point",
+        "coordinates": [39.219, -6.801]
+      },
+      "distance_km": 1.24,
+      "is_default": false
+    },
+    "fulfilment_warning": null,
+    "fulfilment_warning_detail": null,
+    "pickup_address": null
   },
   {
-    "code": "pick-up",
-    "name": "Store pickup",
-    "description": "Collect at counter",
+    "code": "SelfPickup",
+    "name": "Self-service Pickup",
+    "description": "You will pickup the goods at the store yourself",
     "price": {
       "currency": "TZS",
       "excl_tax": "0.00",
       "incl_tax": "0.00"
     },
-    "is_discounted": false
+    "is_discounted": false,
+    "kind": "pickup",
+    "expires_at": null,
+    "display_currency": "TZS",
+    "display_price_incl_tax": 0.0,
+    "exchange_rate": null,
+    "fulfilment_address": {
+      "id": 7,
+      "line1": "Near WH",
+      "city": "Dar es Salaam",
+      "location": {
+        "type": "Point",
+        "coordinates": [39.219, -6.801]
+      },
+      "distance_km": 1.24,
+      "is_default": false
+    },
+    "fulfilment_warning": null,
+    "fulfilment_warning_detail": null,
+    "pickup_address": {
+      "id": 7,
+      "line1": "Near WH",
+      "city": "Dar es Salaam",
+      "location": {
+        "type": "Point",
+        "coordinates": [39.219, -6.801]
+      },
+      "distance_km": 1.24,
+      "is_default": false
+    }
   }
 ]
