@@ -65,7 +65,9 @@ unknown codes):
 | `DOMAIN_ACTIVATION_FAILED` | Paid domain did not activate | Domains tab |
 
 Failure/cancel/suspend codes should render with error styling even when
-the generic `type` field is absent.
+the generic `type` field is absent. Hosting notifications also carry
+`data.fqdn` / `data.display_name` for exact deep-links (e.g.
+`/domains/{fqdn}`); fall back to the list route when absent.
 
 ### Query parameters (lists)
 
