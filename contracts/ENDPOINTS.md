@@ -50,6 +50,23 @@ Payment capture: `{API_BASE}/payments/` — **not** under `shop/api`.
 
 \*Guest checkout when deployment allows.
 
+### Hosting notifications (commtype codes)
+
+Push/in-app notifications carry `data.commtype_code`. Map codes to icons
+and deep-links with a generic fallback (title-cased code, no crash on
+unknown codes):
+
+| Code prefix | Meaning | Suggested target |
+|-------------|---------|------------------|
+| `VPS_ACTIVE` / `VPS_FAILED` | Server commissioned / provisioning failed | VPS detail (operator console); no merchant route |
+| `VPS_SUSPENDED` / `VPS_RESTORED` / `VPS_CANCELLED` | Billing lifecycle | Billing/subscriptions; `CANCELLED` is terminal |
+| `EMAIL_HOSTING_DOMAIN_ACTIVE` / `_FAILED` | Mail domain provisioned / failed | Domains tab |
+| `EMAIL_HOSTING_DOMAIN_SUSPENDED` / `_RESTORED` / `_CANCELLED` | Mail billing lifecycle | Domains tab; `CANCELLED` is terminal read-only |
+| `DOMAIN_ACTIVATION_FAILED` | Paid domain did not activate | Domains tab |
+
+Failure/cancel/suspend codes should render with error styling even when
+the generic `type` field is absent.
+
 ### Query parameters (lists)
 
 `page` (default 1), `size` (default 15, max 10000). See [CATALOG.md](CATALOG.md) and [docs/storefront-integration.md Appendix A](../docs/storefront-integration.md#appendix-a-catalog-query-parameters).
